@@ -1,0 +1,48 @@
+# The wk2 container, as a single pod. This file is given complete on day 1;
+# from tomorrow you write the YAML yourself.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: serving
+  labels:
+    app: serving
+spec:
+  containers:
+    - name: serving
+      # EDIT THIS LINE: your own wk2 image from Docker Hub
+      image: mindg/ai-serve-stack:gpu-v2
+      ports:
+        - containerPort: 8000
+      env:
+        - name: IMAGE
+          value: "Qwen3-14B"
+
+        - name: MODEL_ID
+          value: "Qwen3-14B"
+
+        - name: MODEL_PATH
+          value: "/app/.cache/huggingface"
+
+        - name: HOST_PORT
+          value: "8000"
+
+        - name: API_KEY
+          value: "5e353d202ad083402067ac62dd69525e3bb161d9b360f9584acb5188406609e4"
+
+        - name: SERVING_API_KEY
+          value: "gfmldkmklfdl4kl4kl"
+
+        - name: MAX_TOKENS
+          value: "256"
+
+        - name: BASE_URL
+          value: "http://localhost:8000"
+      volumeMounts:
+        - name: model
+          mountPath: /app/.cache/huggingface
+
+  volumes:
+  - name: model
+    hostPath:
+      path: /home/nassir/models/Qwen3-14B
+      type: Directory
