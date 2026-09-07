@@ -1,1 +1,0 @@
-{"cluster": "pod:aidc-t03", "namespace": "ri1cj", "pod": "serving", "image": "3wa0/aidc-serving:cpu-v1", "node": "aidc-t03", "chat_status": 200}
