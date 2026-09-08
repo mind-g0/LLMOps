@@ -8,7 +8,7 @@
 # opens itself.
 # Works on the team pod's k3s (your namespace) and on a laptop's kind cluster.
 set -u
-your_namespace="-n nassir"
+your_namespace="yaser"
 POD="${POD:-serving}"
 PF_PID=""
 

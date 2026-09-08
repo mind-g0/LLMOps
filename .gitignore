@@ -1,1 +1,21 @@
 /.env
+# kubeconfig / cluster credentials
+.kube/
+kubeconfig*
+*.kubeconfig
+
+# k3s system config (never commit)
+k3s.yaml
+
+# secrets
+*.key
+*api-key*
+serving-keys*
+
+# local scratch / logs
+*.log
+/tmp/
+
+# python
+__pycache__/
+*.pyc
