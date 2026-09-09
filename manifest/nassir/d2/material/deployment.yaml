@@ -1,0 +1,92 @@
+# The pod from yesterday, wrapped in the thing that keeps it alive.
+# Fill the two TODO blocks during Step 2; everything else is given.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serving
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: serving
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0     # never take a ready pod away before its replacement is ready
+      maxSurge: 1
+
+  template:
+    metadata:
+      labels:
+        app: serving
+    spec:
+      containers:
+        - name: serving
+          # EDIT THIS LINE: your own wk2 image from Docker Hub
+          image: mindg/ai-serve-stack:gpu-v2
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 2
+            failureThreshold: 2
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 2
+            failureThreshold: 2
+
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - sleep 5
+          env:    
+            - name: MODEL_ID
+              value: "Qwen/Qwen3.5-4B"
+    
+            - name: MODEL_PATH
+              value: "/app/.cache/huggingface"
+    
+            - name: HOST_PORT
+              value: "8000"
+    
+            - name: SERVING_API_KEY
+              value: "gfmldkmklfdl4kl4kl"
+    
+            - name: MAX_TOKENS
+              value: "256"
+    
+            - name: BASE_URL
+              value: "http://localhost:8000"
+          volumeMounts:
+            - name: model
+              mountPath: /app/.cache/huggingface
+    
+      volumes:
+      - name: model
+        hostPath:
+          path: /home/nassir/models/Qwen3.5-4B
+          type: Directory
+              # TODO (Step 2): readiness probe on GET /health, port 8000.
+              # The app answers 503 there until the backend is loaded, so this is
+              # the gate that keeps traffic away from a pod that cannot serve yet.
+              #
+              # TODO (Step 2): liveness probe on GET /health, port 8000, with a
+              # generous initialDelaySeconds. This is the one that restarts a pod
+              # that was healthy and stopped being.
