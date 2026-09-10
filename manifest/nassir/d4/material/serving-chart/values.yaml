@@ -7,20 +7,22 @@ replicas: 2
 backend: echo                      # echo for tier 0; transformers/vllm at tier 1
 modelId: Qwen/Qwen3.5-4B
 
-apiKey: "ddldldldldlldld"                         # teaching-only: a --set literal leaks into shell history and helm get values
-apiKeySecret: "dldldldldldddd"                   # go-live (Thursday): name of a Secret carrying key `api-key`; wins over apiKey. Empty + empty = open, with the app's loud startup warning
+apiKey: "for-hf"                         # teaching-only: a --set literal leaks into shell history and helm get values
+apiKeySecret: "serving-keys"                   # go-live (Thursday): name of a Secret carrying key `api-key`; wins over apiKey. Empty + empty = open, with the app's loud startup warning
+servingApiKey: "gfmldkmklfdl4kl4kl"             # go-live (Thursday): name of a Secret carrying key `serving-api-key`; wins over apiKey. Empty + empty = open, with the app's loud startup warning
 
 service:
   type: ClusterIP                  # go-live on the team pod: --set service.type=NodePort
   nodePort: 30800                  # fixed on purpose: the pod's tunnel reaches this port
 
 resources:
-  requests:
-    cpu: 250m
-    memory: 256Mi
   limits:
-    cpu: "1"
-    memory: 512Mi
+    cpu: "1250m"
+    memory: "8Gi"
+  requests:
+    cpu: "250m"
+    memory: "4Gi"
+
 
 hpa:
   enabled: false                   # Wednesday's lab turns this on

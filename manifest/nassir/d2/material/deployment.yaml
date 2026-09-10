@@ -5,7 +5,7 @@ kind: Deployment
 metadata:
   name: serving
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: serving
@@ -44,10 +44,10 @@ spec:
           resources:
             limits:
               cpu: "1"
-              memory: "512Mi"
+              memory: "8Gi"
             requests:
               cpu: "250m"
-              memory: "256Mi"
+              memory: "4Gi"
 
           lifecycle:
             preStop:
