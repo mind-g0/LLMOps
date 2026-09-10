@@ -60,3 +60,12 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: model
+              mountPath: /app/.cache/huggingface
+    
+      volumes:
+      - name: model
+        hostPath:
+          path: /home/nassir/models/Qwen3.5-4B
+          type: Directory

@@ -1,14 +1,14 @@
 # Everything a deploy might change, in one file. The templates read these;
 # `helm install -f` or `--set` overrides them per release.
-image: <your-user>/aidc-serving:cpu-v1
+image: mindg/ai-serve-stack:gpu-v2
 
-replicas: 1
+replicas: 2
 
 backend: echo                      # echo for tier 0; transformers/vllm at tier 1
-modelId: Qwen/Qwen2.5-0.5B-Instruct
+modelId: Qwen/Qwen3.5-4B
 
-apiKey: ""                         # teaching-only: a --set literal leaks into shell history and helm get values
-apiKeySecret: ""                   # go-live (Thursday): name of a Secret carrying key `api-key`; wins over apiKey. Empty + empty = open, with the app's loud startup warning
+apiKey: "ddldldldldlldld"                         # teaching-only: a --set literal leaks into shell history and helm get values
+apiKeySecret: "dldldldldldddd"                   # go-live (Thursday): name of a Secret carrying key `api-key`; wins over apiKey. Empty + empty = open, with the app's loud startup warning
 
 service:
   type: ClusterIP                  # go-live on the team pod: --set service.type=NodePort
