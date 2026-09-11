@@ -18,3 +18,11 @@ spec:
           value: "echo"          # orchestration week: the objective is the cluster, not the model
         - name: MODEL_ID
           value: "Qwen/Qwen2.5-1.5B-Instruct"
+
+# we have tow ways one is mount from local host and mount to the container, the other is to use a volume and mount it to the container, we will use the second way it well reed only wich is best way to handle the hugingface mount is good but the problem is whin the server is down and repuled we will get to cashe again (download it again) and it will take time to download the model again, so we will use the volume way to handle this problem and we will mount the model to the container
+          
+  # volumes:
+  # - name: model
+  #   hostPath:
+  #     path: /home/nassir/models/Qwen3-14B
+  #     type: Directory
