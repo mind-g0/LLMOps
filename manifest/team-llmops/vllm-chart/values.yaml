@@ -1,0 +1,54 @@
+replicas: 1
+
+image: vllm/vllm-openai:v0.27.1
+
+model:
+  id: /models/Qwen3.5-4B
+  # quantization: awq
+  dtype: half
+  maxModelLen: 4096
+  gpuMemoryUtilization: "0.8"
+
+  autoToolChoice: true
+  toolCallParser: hermes
+
+apiKeySecret: serving-keys
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  nodePort: 30800
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 16Gi
+    nvidia.com/gpu: 1
+  limits:
+    cpu: "4"
+    memory: 16Gi
+    nvidia.com/gpu: 1
+
+modelCache:
+  hostPath: /var/lib/hf-cache
+  mountPath: /root/.cache/huggingface
+
+startupProbe:
+  periodSeconds: 10
+  failureThreshold: 60
+
+readinessProbe:
+  periodSeconds: 5
+  failureThreshold: 3
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUPercent: 70
+  scaleDownStabilizationSeconds: 300
+
+modelVolume:
+  hostPath: /home/nassir/models/Qwen3.5-4B
+  mountPath: /models/Qwen3.5-4B

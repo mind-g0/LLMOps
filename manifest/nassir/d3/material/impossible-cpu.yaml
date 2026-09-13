@@ -1,0 +1,23 @@
+# A perfectly valid wish the scheduler cannot grant. It will sit Pending;
+# the lesson is in `kubectl describe pod impossible-cpu`, Events.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: impossible-cpu
+spec:
+  containers:
+    - name: wisher
+      image: mindg/ai-serve-stack:gpu-v2
+      command: ["sleep", "3600"]
+      resources:
+        requests:
+          cpu: "64"
+      volumeMounts:
+        - name: model
+          mountPath: /app/.cache/huggingface
+    
+  volumes:
+  - name: model
+    hostPath:
+      path: /home/nassir/models/Qwen3.5-4B
+      type: Directory
