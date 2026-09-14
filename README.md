@@ -89,3 +89,127 @@ curl -H "x-api-key: 86937aa022c3a035556bea0b8d5d2ec8" \
     ],
     "max_tokens": 50
   }'
+```
+## GPU Time-Slicing
+
+The cluster has **1 NVIDIA GPU** shared between multiple vLLM Pods using the NVIDIA Device Plugin.
+
+### Configure GPU sharing
+
+Create the ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nvidia-device-plugin-config
+  namespace: kube-system
+data:
+  time-slicing: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        renameByDefault: false
+        failRequestsGreaterThanOne: true
+        resources:
+          - name: nvidia.com/gpu
+            replicas: 2
+```
+
+Apply it:
+
+```bash
+kubectl apply -f nvidia-device-plugin-config.yaml
+```
+
+Configure the NVIDIA Device Plugin:
+
+```bash
+kubectl patch daemonset nvidia-device-plugin-daemonset \
+  -n kube-system \
+  --type='strategic' \
+  -p='
+spec:
+  template:
+    spec:
+      containers:
+      - name: nvidia-device-plugin-ctr
+        args:
+        - --config-file=/config/time-slicing
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: config
+        configMap:
+          name: nvidia-device-plugin-config
+'
+```
+
+Verify:
+
+```bash
+kubectl get node aidc-t03 \
+  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
+```
+
+Expected:
+
+```text
+2
+```
+
+Pods can now request:
+
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 1
+```
+
+> **Important:** GPU time-slicing shares the GPU but does **not** divide VRAM. Multiple vLLM models can still compete for GPU memory and cause CUDA OOM.
+
+### Revert GPU Time-Slicing
+
+Remove the time-slicing configuration:
+
+```bash
+kubectl patch daemonset nvidia-device-plugin-daemonset \
+  -n kube-system \
+  --type='strategic' \
+  -p='
+spec:
+  template:
+    spec:
+      containers:
+      - name: nvidia-device-plugin-ctr
+        args: []
+        volumeMounts: []
+      volumes: []
+'
+```
+
+Delete the ConfigMap:
+
+```bash
+kubectl delete configmap nvidia-device-plugin-config -n kube-system
+```
+
+Restart the Device Plugin:
+
+```bash
+kubectl rollout restart daemonset nvidia-device-plugin-daemonset -n kube-system
+```
+
+Verify:
+
+```bash
+kubectl get node aidc-t03 \
+  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
+```
+
+Expected:
+
+```text
+1
+```
