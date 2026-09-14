@@ -43,6 +43,7 @@ spec:
             {{- if .Values.model.toolCallParser }}
             - --tool-call-parser={{ .Values.model.toolCallParser }}
             {{- end }}
+            - --max-num-seqs={{ .Values.model.maxNumSeqs }}
 
           ports:
             - name: http
@@ -52,8 +53,8 @@ spec:
             - name: VLLM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiKeySecret }}
-                  key: api-key
+                  name: {{ .Values.apiKeySecret.name }}
+                  key: {{ .Values.apiKeySecret.key }}
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
