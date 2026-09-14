@@ -19,3 +19,4 @@ serving-keys*
 # python
 __pycache__/
 *.pyc
+/eval/
