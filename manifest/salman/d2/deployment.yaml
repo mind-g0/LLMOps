@@ -1,5 +1,3 @@
-# The pod from yesterday, wrapped in the thing that keeps it alive.
-# Fill the two TODO blocks during Step 2; everything else is given.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,31 +20,37 @@ spec:
       containers:
         - name: serving
           # EDIT: your own wk2 image
-          image: cyp7/aidc-serving:cpu-v1
+          image: cyp7/aidc-serving:cpu-v1 
+
           ports:
             - containerPort: 8000
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
           lifecycle:
-            preStop:              # keep serving while endpoint removal propagates;
-              sleep:              # without this, a rolling update drops the requests
-                seconds: 5        # that land in that race window (measured: 2 in 45s)
+            preStop:
+              exec:
+                command: ["sleep", "5"]
           env:
             - name: MODEL_BACKEND
               value: "echo"
             - name: MODEL_ID
-              value: "Qwen/Qwen2.5-0.5B-Instruct"
-            - name: APP_VERSION        # an env var; changing it is one way to trigger a roll (the verifier flips VERIFY_STAMP)
+              value: "Qwen/Qwen2.5-1.5B-Instruct"
+            - name: APP_VERSION
               value: "v1"
-
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
-            periodSeconds: 2
-            failureThreshold: 2
-
+            initialDelaySeconds: 5
+            periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 20
-            periodSeconds: 5
+            initialDelaySeconds: 30
+            periodSeconds: 10
