@@ -1,0 +1,14 @@
+alertmanager:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: false  
+
+grafana:
+  service:
+    type: NodePort
+    nodePort: 32311   
+
+prometheus:
+  service:
+    type: ClusterIP  

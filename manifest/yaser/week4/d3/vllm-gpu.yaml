@@ -59,7 +59,7 @@ spec:
             - --quantization=awq                       # drop if you locked the pocket fp16
             - --dtype=half
             - --max-model-len=4096
-            - --gpu-memory-utilization=0.85
+            - --gpu-memory-utilization=0.35
             - --enable-auto-tool-choice
             - --tool-call-parser=hermes                # per family; see model-lock.md
           ports:
