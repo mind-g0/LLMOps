@@ -1,4 +1,4 @@
-# serving-stack
+# serving-stack - testing this image model feature pr
 
 The one system this course builds. Your team creates this repository once from
 the template, and every lab from week 2 to graduation is a change to it. There
