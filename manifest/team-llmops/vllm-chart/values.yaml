@@ -5,10 +5,10 @@ image: vllm/vllm-openai:v0.27.1
 model:
   id: /models/Qwen3.5-4B
   # quantization: awq
-  dtype: half
-  maxModelLen: 4096
-  gpuMemoryUtilization: "0.8"
-
+  dtype: auto
+  maxModelLen: 131072
+  gpuMemoryUtilization: "0.5"
+  prefixCaching: true
   autoToolChoice: true
   toolCallParser: hermes
 

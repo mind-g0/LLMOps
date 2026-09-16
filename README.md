@@ -1,13 +1,9 @@
-# serving-stack
-
-The one system this course builds. Your team creates this repository once from
-the template, and every lab from week 2 to graduation is a change to it. There
-is no week where you start again.
-
+# Agentic AI Serving Stack Team LLMOps
+this repository is the code for the Agentic AI Serving Stack and RAG of HR Ai project. It is a complete stack for serving LLMs and RAG, and it is designed to be used in a team setting. The stack is built on top of Docker and Docker Compose, and it is designed to be easy to use and easy to extend.
 ## What is here
 
 ```
-app/        empty. Your service goes here, starting week 2 day 2
+app/        
 docs/       the API contract the Agentic AI cohort integrates against
 scripts/    verify-env.sh, which checks your machine against what the labs need
 PINS.md     every version this course depends on
