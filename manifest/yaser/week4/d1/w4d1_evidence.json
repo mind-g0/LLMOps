@@ -1,0 +1,1 @@
+{"cluster": "pod:aidc-t03", "namespace": "yaser", "pod": "serving", "image": "yas1er/aidc-serving:cpuv2", "node": "aidc-t03", "chat_status": 200}

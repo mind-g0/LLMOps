@@ -20,8 +20,7 @@ spec:
       containers:
         - name: serving
           # EDIT: your own wk2 image
-          image: cyp7/aidc-serving:cpu-v1 
-
+          image: yas1er/aidc-serving:cpuv1
           ports:
             - containerPort: 8000
           resources:
