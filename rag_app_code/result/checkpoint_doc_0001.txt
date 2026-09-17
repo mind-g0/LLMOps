@@ -1,0 +1,50 @@
+================ EVALUATION CHECKPOINT [doc_0001] ================
+
+[FILE NAME]
+doc_0001.md
+
+[CANDIDATE CV PREVIEW]
+مُؤرَّد
+شخصية
+
+خالد أحمد المطيري
+
+Systems & Network Engineer — مهندس أنظمة وشبكات
+
+البيانات الشخصية
+
+البيانات الشخصية
+
+نبذة مختصرة
+
+الرياض، المملكة العربية السعودية
+
++966 55 123 4567
+
+khald.mutairi92@example.com
+
+linkedin.com/in/k-almutairi
+
+المهارات التقنية
+
+<table><tr><td>المستوى</td><td>المهارة</...
+
+[TARGET JOB REQUIREMENT]
+Title: Data & AI Consultant / Lead
+
+[EVALUATION METRICS]
+Match Score: 15.0%
+
+[STRENGTHS]
+- Strong regional presence in KSA/GCC with 7+ years of experience.
+- Fluent in both Arabic and English.
+- Solid technical foundation in networking and cloud infrastructure (AWS).
+
+[GAPS & MISSING SKILLS]
+- No experience in Data Science, Machine Learning, or AI.
+- Missing core technical skills: Python, PyTorch, LangChain, MLOps, AI Governance.
+- No background in GenAI, RAG architectures, or AI Agents.
+- Career focus is entirely on Systems & Network Engineering, not Data & AI.
+
+[RECOMMENDATION]
+Not a match. The candidate's profile is a Systems & Network Engineer, while the role requires a Data & AI Consultant. The candidate lacks all essential technical skills and domain experience for this position.

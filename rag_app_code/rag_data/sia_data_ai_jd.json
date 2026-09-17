@@ -1,0 +1,14 @@
+{
+  "id": "sia_data_ai_lead_001",
+  "company": "Sia",
+  "title": "Data & AI Consultant / Lead",
+  "min_experience_years": 4,
+  "max_experience_years": 10,
+  "required_languages": ["English", "Arabic"],
+  "locations": ["KSA", "GCC"],
+  "required_skills": [
+    "Data Science", "Generative AI", "RAG", "Agentic AI", "Python", 
+    "LangChain", "Azure OpenAI", "Databricks", "MLOps", "AI Governance"
+  ],
+  "summary_text": "Role: Data & AI Management Consultant at Sia (KSA/GCC). Experience: 4-10 years in Data Science, GenAI, and RAG architectures. Skills: Python, PyTorch, LangChain, Azure OpenAI, MLOps, AI Governance, RAG, AI Agents. Languages: Fluent English and Arabic required. Regional KSA/GCC experience required."
+}

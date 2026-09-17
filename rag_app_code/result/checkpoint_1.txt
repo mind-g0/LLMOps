@@ -1,0 +1,24 @@
+================ PIPELINE RUN CHECKPOINT #1 ================
+
+[EXTRACTED CANDIDATE SUMMARY]
+AI Systems Developer at Advanced Technology Company in Riyadh, Saudi Arabia, leading Generative AI and RAG pipeline development.
+
+[RETRIEVED ROLES COUNT]
+Matched Roles: 1
+
+[EVALUATION RESULT]
+{
+  "match_score": 92.0,
+  "strengths": [
+    "Directly matches the core role of leading GenAI and RAG pipeline development, which aligns perfectly with the target job's focus on GenAI and RAG architectures.",
+    "Location match: Candidate is based in Riyadh, Saudi Arabia, fulfilling the strict requirement for KSA/GCC experience.",
+    "Language match: Implicitly fluent in Arabic and English given the location and role context in KSA.",
+    "Seniority match: Leading a team or pipeline at an 'Advanced Technology Company' suggests the 4-10 years experience range required."
+  ],
+  "gaps": [
+    "Specific mention of 'AI Governance' and 'AI Agents' in the JD is not explicitly confirmed in the candidate's brief background, though likely implied by 'AI Systems Developer' role.",
+    "Cloud platform specificity: JD specifies 'Azure OpenAI', while candidate's background is generic ('Advanced Technology Company').",
+    "Consulting vs. Development: The target role is a 'Consultant/Lead' role, whereas the candidate is described as a 'Developer'. While skills overlap, the consulting aspect (client management, strategy) is not explicitly highlighted."
+  ],
+  "recommendation": "Strong Hire. The candidate is an excellent fit for the technical and regional requirements. The primary risk is the lack of explicit 'Consulting' experience, but the technical depth in GenAI/RAG makes them a viable candidate for a technical lead or hands-on consultant role."
+}
