@@ -1,22 +1,36 @@
-/.env
-# kubeconfig / cluster credentials
-.kube/
-kubeconfig*
+.env
+.env.*
+!.env.example
+*.pem
+*_rsa
+*_ed25519
+kubeconfig
 *.kubeconfig
 
-# k3s system config (never commit)
-k3s.yaml
+# Model weights and caches. Gigabytes, and git keeps every version forever.
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.ckpt
+*.h5
+*.npz
+*.onnx
+models/
+.cache/
+huggingface/
 
-# secrets
-*.key
-*api-key*
-serving-keys*
-
-# local scratch / logs
-*.log
-/tmp/
-
-# python
+# Python
+.venv/
+venv/
+env/
 __pycache__/
-*.pyc
-/eval/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Regenerated output. Your results JSON is deliberately not here: commit it.
+*.log
+nohup.out
+.DS_Store
+.ipynb_checkpoints/

@@ -45,6 +45,13 @@ spec:
             {{- end }}
             - --max-num-seqs={{ .Values.model.maxNumSeqs }}
 
+            {{- if .Values.model.toolCallParser }}
+            - --tool-call-parser={{ .Values.model.toolCallParser }}
+            {{- end }}
+
+            {{- if .Values.model.prefixCaching }}
+            - --enable-prefix-caching
+            {{- end }}
           ports:
             - name: http
               containerPort: 8000
