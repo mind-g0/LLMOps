@@ -1,14 +1,13 @@
 replicas: 1
 
 image: vllm/vllm-openai:v0.27.1
-# Qwen3.8-27B-FP8
-# Qwen3.5-4B
+# Qianfan-OCR
 model:
-  id: /models/Qwen3.5-4B
+  id: /models/Qianfan-OCR
   # quantization: awq
   dtype: auto
-  maxModelLen: 64000
-  gpuMemoryUtilization: "0.5"
+  maxModelLen: 32768
+  gpuMemoryUtilization: "0.3"
   maxNumSeqs: 64
 
   autoToolChoice: true
@@ -16,23 +15,23 @@ model:
 
 # We are managing the secret for the API key from the terminal.
 apiKeySecret: 
-  name: vllm-keys
-  key: VLLM_API_KEY
+  name: serving-keys
+  key: api-key
 
 service:
   type: ClusterIP
-  port: 8000
+  port: 8001
   targetPort: 8000
   #nodePort: 30800
 
 resources:
   requests:
-    cpu: "4"
-    memory: 6Gi
+    cpu: "2"
+    memory: 4Gi
     nvidia.com/gpu: 1
   limits:
-    cpu: "4"
-    memory: 6Gi
+    cpu: "2"
+    memory: 4Gi
     nvidia.com/gpu: 1
 
 modelCache:
@@ -55,5 +54,5 @@ hpa:
   scaleDownStabilizationSeconds: 300
 
 modelVolume:
-  hostPath: /home/nassir/models/Qwen3.5-4B
-  mountPath: /models/Qwen3.5-4B
+  hostPath: /home/nassir/models/Qianfan-OCR
+  mountPath: /models/Qianfan-OCR
