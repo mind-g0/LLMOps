@@ -1,5 +1,0 @@
-{
-  "Qwen2.5-0.5B-Instruct": {"repo_id": "Qwen/Qwen2.5-0.5B-Instruct", "tier": "tier-0", "status": "approved"},
-  "Qwen2.5-1.5B-Instruct": {"repo_id": "Qwen/Qwen2.5-1.5B-Instruct", "tier": "tier-0", "status": "approved"},
-  "Qwen2.5-3B-Instruct": {"repo_id": "Qwen/Qwen2.5-3B-Instruct", "tier": "tier-1", "status": "approved"}
-}

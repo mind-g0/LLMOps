@@ -1,0 +1,6 @@
+apiVersion: v2
+name: vllm-serving
+description: Helm chart for vLLM - Team LLMOps 
+type: application
+version: 0.1.0
+appVersion: "0.27.1"

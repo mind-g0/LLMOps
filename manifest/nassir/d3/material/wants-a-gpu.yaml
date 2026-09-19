@@ -1,0 +1,26 @@
+# The same manifest that WORKS on the tier-1 team pod. Here, on a node with no
+# device plugin, it stays Pending with `Insufficient nvidia.com/gpu` - which is
+# exactly what a mis-scheduled GPU workload looks like in production.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wants-a-gpu
+spec:
+  containers:
+    - name: wisher
+      image: mindg/ai-serve-stack:gpu-v2
+      command: ["sleep", "3600"]
+      resources:
+        requests:
+          nvidia.com/gpu: 1
+        limits:
+          nvidia.com/gpu: 1
+      volumeMounts:
+        - name: model
+          mountPath: /app/.cache/huggingface
+    
+  volumes:
+  - name: model
+    hostPath:
+      path: /home/nassir/models/Qwen3.5-4B
+      type: Directory

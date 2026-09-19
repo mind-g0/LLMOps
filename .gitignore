@@ -1,80 +1,38 @@
-/.env
-# --- Python ---
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# --- Virtual environments ---
-.venv/
-.venv-*/
-venv/
-env/
-ENV/
-
-# --- Secrets / environment config ---
 .env
 .env.*
 !.env.example
 *.pem
-*.key
-HF_TOKEN
-kaggle.json
+*_rsa
+*_ed25519
+kubeconfig
+*.kubeconfig
 
-# --- Jupyter ---
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# --- IDE / editor ---
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
-
-# --- Docker ---
-*.pid
-
-# --- Model / dataset caches (if ever pulled into repo instead of ~/.cache) ---
+# Model weights and caches. Gigabytes, and git keeps every version forever.
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.ckpt
+*.h5
+*.npz
+*.onnx
+models/
 .cache/
-huggingface_cache/
-.huggingface/
+huggingface/s
 
-# --- Parsing benchmark: real people's resumes (PII) — never commit raw data ---
-eval/parsing_benchmark/data/raw/
-eval/parsing_benchmark/data/samples/
-# Ground truth for hand-authored/non-PII synthetic data is fine to keep —
-# uncomment the next line instead of the blanket rule above if you want that:
-# eval/parsing_benchmark/data/ground_truth/*/  (everything except arabic_synthetic_cv/)
-eval/parsing_benchmark/data/ground_truth/
-
-# Model outputs on real PII documents — also don't commit
-eval/parsing_benchmark/results/ocr/
-eval/parsing_benchmark/results/docling/
-eval/parsing_benchmark/results/qianfan_ocr/
-eval/parsing_benchmark/results/baseer/
-eval/parsing_benchmark/results/glm_ocr/
-
-# Metrics CSVs and comparison reports are just numbers, not PII — keep these:
-!eval/parsing_benchmark/results/metrics_*.csv
-!eval/parsing_benchmark/reports/
-
-# --- Large downloaded font/asset files pulled in ad hoc ---
-*.ttf
-*.otf
-
-# --- General data hygiene (repo-wide) ---
-*.log
-*.tmp
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
 .pytest_cache/
+*.egg-info/
+
+# Regenerated output. Your results JSON is deliberately not here: commit it.
+*.log
+nohup.out
+.DS_Store
+.ipynb_checkpoints/
 
 
-eval/parsing_benchmark/acrchive/
-eval/parsing_benchmark/results/
-eval/parsing_benchmark/data/
-setup.sh

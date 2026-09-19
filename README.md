@@ -1,13 +1,9 @@
-# serving-stack
-
-The one system this course builds. Your team creates this repository once from
-the template, and every lab from week 2 to graduation is a change to it. There
-is no week where you start again.
-
+# Agentic AI Serving Stack Team LLMOps
+this repository is the code for the Agentic AI Serving Stack and RAG of HR Ai project. It is a complete stack for serving LLMs and RAG, and it is designed to be used in a team setting. The stack is built on top of Docker and Docker Compose, and it is designed to be easy to use and easy to extend.
 ## What is here
 
 ```
-app/        empty. Your service goes here, starting week 2 day 2
+app/        
 docs/       the API contract the Agentic AI cohort integrates against
 scripts/    verify-env.sh, which checks your machine against what the labs need
 PINS.md     every version this course depends on
@@ -89,3 +85,127 @@ curl -H "x-api-key: 86937aa022c3a035556bea0b8d5d2ec8" \
     ],
     "max_tokens": 50
   }'
+```
+## GPU Time-Slicing
+
+The cluster has **1 NVIDIA GPU** shared between multiple vLLM Pods using the NVIDIA Device Plugin.
+
+### Configure GPU sharing
+
+Create the ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nvidia-device-plugin-config
+  namespace: kube-system
+data:
+  time-slicing: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        renameByDefault: false
+        failRequestsGreaterThanOne: true
+        resources:
+          - name: nvidia.com/gpu
+            replicas: 2
+```
+
+Apply it:
+
+```bash
+kubectl apply -f nvidia-device-plugin-config.yaml
+```
+
+Configure the NVIDIA Device Plugin:
+
+```bash
+kubectl patch daemonset nvidia-device-plugin-daemonset \
+  -n kube-system \
+  --type='strategic' \
+  -p='
+spec:
+  template:
+    spec:
+      containers:
+      - name: nvidia-device-plugin-ctr
+        args:
+        - --config-file=/config/time-slicing
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: config
+        configMap:
+          name: nvidia-device-plugin-config
+'
+```
+
+Verify:
+
+```bash
+kubectl get node aidc-t03 \
+  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
+```
+
+Expected:
+
+```text
+2
+```
+
+Pods can now request:
+
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 1
+```
+
+> **Important:** GPU time-slicing shares the GPU but does **not** divide VRAM. Multiple vLLM models can still compete for GPU memory and cause CUDA OOM.
+
+### Revert GPU Time-Slicing
+
+Remove the time-slicing configuration:
+
+```bash
+kubectl patch daemonset nvidia-device-plugin-daemonset \
+  -n kube-system \
+  --type='strategic' \
+  -p='
+spec:
+  template:
+    spec:
+      containers:
+      - name: nvidia-device-plugin-ctr
+        args: []
+        volumeMounts: []
+      volumes: []
+'
+```
+
+Delete the ConfigMap:
+
+```bash
+kubectl delete configmap nvidia-device-plugin-config -n kube-system
+```
+
+Restart the Device Plugin:
+
+```bash
+kubectl rollout restart daemonset nvidia-device-plugin-daemonset -n kube-system
+```
+
+Verify:
+
+```bash
+kubectl get node aidc-t03 \
+  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
+```
+
+Expected:
+
+```text
+1
+```

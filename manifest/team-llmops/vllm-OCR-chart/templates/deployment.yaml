@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ .Release.Name }}-serving
+
+spec:
+  {{- if not .Values.hpa.enabled }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vllm
+        app.kubernetes.io/instance: {{ .Release.Name }}
+
+    spec:
+      containers:
+        - name: vllm
+          image: {{ .Values.image }}
+
+          args:
+            - {{ .Values.model.id | quote }}
+
+            {{- if .Values.model.quantization }}
+            - --quantization={{ .Values.model.quantization }}
+            {{- end }}
+
+            - --dtype={{ .Values.model.dtype }}
+            - --max-model-len={{ .Values.model.maxModelLen }}
+            - --gpu-memory-utilization={{ .Values.model.gpuMemoryUtilization }}
+
+            {{- if .Values.model.autoToolChoice }}
+            - --enable-auto-tool-choice
+            {{- end }}
+
+            {{- if .Values.model.toolCallParser }}
+            - --tool-call-parser={{ .Values.model.toolCallParser }}
+            {{- end }}
+            - --max-num-seqs={{ .Values.model.maxNumSeqs }}
+
+          ports:
+            - name: http
+              containerPort: 8000
+
+          env:
+            - name: VLLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiKeySecret.name }}
+                  key: {{ .Values.apiKeySecret.key }}
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: model
+              mountPath: {{ .Values.modelVolume.mountPath }}
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 60
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 3
+
+      volumes:
+        - name: model
+          hostPath:
+            path: {{ .Values.modelVolume.hostPath }}
+            type: Directory
