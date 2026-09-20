@@ -4,6 +4,7 @@ from pathlib import Path
 from vectorstore.qdrant_client import seed_vectorstore_from_rag_data
 from rag.retriever import retrieve_matching_jds
 from rag.evaluator import evaluate_candidate_against_jds
+from rag.extractor import extract_and_format_candidate_en
 
 def read_all_cv_files(cv_folder: str = "cv_data") -> list[tuple[str, str]]:
     """Reads all text, markdown, or JSON CV files from cv_data directory.
@@ -34,14 +35,14 @@ def read_all_cv_files(cv_folder: str = "cv_data") -> list[tuple[str, str]]:
             
     return cv_records
 
-def save_result_checkpoint(file_name: str, cv_text: str, matched_jds: list, evaluation) -> Path:
+def save_result_checkpoint(file_name: str, english_preview: str, matched_jds: list, evaluation) -> Path:
     """Saves evaluation output for a specific candidate into result/ directory."""
     result_dir = Path("result")
     result_dir.mkdir(exist_ok=True)
     
     # Create distinct report file based on the input CV filename
     safe_name = Path(file_name).stem
-    checkpoint_path = result_dir / f"checkpoint_{safe_name}.txt"
+    checkpoint_path = result_dir / f"checkpoint_{safe_name}.md"
 
     top_jd = matched_jds[0] if matched_jds else {}
 
@@ -51,7 +52,7 @@ def save_result_checkpoint(file_name: str, cv_text: str, matched_jds: list, eval
 {file_name}
 
 [CANDIDATE CV PREVIEW]
-{cv_text[:300]}...
+{english_preview}
 
 [TARGET JOB REQUIREMENT]
 Title: {top_jd.get('title', 'N/A')}
@@ -90,10 +91,13 @@ def main():
         print(f"Processing CV [{index}/{len(cv_records)}]: {file_name}")
         print("="*50)
 
-        print("3. Retrieving top matching job requirements...")
+        print("3. Extracting English candidate preview...")
+        extracted_data, english_preview = extract_and_format_candidate_en(cv_text)
+
+        print("4. Retrieving top matching job requirements...")
         matched_jds = retrieve_matching_jds(cv_text, top_k=1)
 
-        print("4. Evaluating candidate CV against job requirements...")
+        print("5. Evaluating candidate CV against job requirements...")
         evaluation = evaluate_candidate_against_jds(cv_text, matched_jds)
 
         print(f"\nMatch Score: {evaluation.match_score}%")
@@ -108,7 +112,7 @@ def main():
         print(f"\nFinal Recommendation:\n{evaluation.recommendation}")
 
         # Save checkpoint per candidate
-        save_result_checkpoint(file_name, cv_text, matched_jds, evaluation)
+        save_result_checkpoint(file_name, english_preview, matched_jds, evaluation)
 
 if __name__ == "__main__":
     main()
