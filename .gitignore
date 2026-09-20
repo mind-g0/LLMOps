@@ -34,3 +34,66 @@ __pycache__/
 nohup.out
 .DS_Store
 .ipynb_checkpoints/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+/result/*
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments (CRITICAL - Keeps massive dependency folders out of Git)
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+pip-wheel-metadata/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# pytest / Testing cache
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+.cache
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Environments (Secrets)
+.env
+*.env
+
+# OS & Editors
+.DS_Store
+.vscode/
+.idea/
