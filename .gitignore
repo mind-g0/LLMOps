@@ -6,6 +6,7 @@
 *_ed25519
 kubeconfig
 *.kubeconfig
+.vscode
 
 # Model weights and caches. Gigabytes, and git keeps every version forever.
 *.safetensors

@@ -3,3 +3,7 @@ uvicorn==0.53.0
 httpx==1.0.dev6
 pydantic==2.14.0b2
 python-dotenv==1.2.3
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+minio==7.2.15
+python-multipart==0.0.20
