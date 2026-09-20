@@ -1,0 +1,28 @@
+# The same neighbour, on a leash.
+# EDIT THE IMAGE LINE here too; this one runs as well.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burner-limited
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: burner-limited}}
+  template:
+    metadata: {labels: {app: burner-limited}}
+    spec:
+      containers:
+        - name: burner
+          image: mindg/ai-serve-stack:gpu-v2
+          command: ["python", "-c", "while True: pass"]
+          resources:
+            limits:
+              cpu: 500m
+          volumeMounts:
+            - name: model
+              mountPath: /app/.cache/huggingface
+    
+      volumes:
+      - name: model
+        hostPath:
+          path: /home/nassir/models/Qwen3.5-4B
+          type: Directory

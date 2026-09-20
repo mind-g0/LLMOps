@@ -1,0 +1,12 @@
+# Refusal C. Edit ONLY the image line (same edit as pod.yaml); diagnose the rest.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-c
+  labels:
+    app: refused
+spec:
+  containers:
+    - name: serving
+      image: mindg/ai-serve-stack:gpu-fcd2a0b
+      command: ["python", "-c", "import sys; sys.exit(3)"]

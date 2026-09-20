@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.apiKeySecret }}
+type: Opaque
+stringData:
+  api-key: {{ .Values.apiKey | quote }}
+  serving-api-key: {{ .Values.servingApiKey | quote }}

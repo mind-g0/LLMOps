@@ -1,0 +1,71 @@
+Name:             vllm-7c78d7bb4d-cjx24
+Namespace:        llmops
+Priority:         0
+Service Account:  default
+Node:             aidc-t03/10.0.0.50
+Start Time:       Sun, 13 Sep 2026 11:48:52 +0000
+Labels:           app=vllm
+                  pod-template-hash=7c78d7bb4d
+Annotations:      <none>
+Status:           Pending
+IP:               10.42.1.105
+IPs:
+  IP:           10.42.1.105
+Controlled By:  ReplicaSet/vllm-7c78d7bb4d
+Containers:
+  vllm:
+    Container ID:  
+    Image:         vllm/vllm-openai:v0.27.1
+    Image ID:      
+    Port:          8000/TCP
+    Host Port:     0/TCP
+    Args:
+      --model=Qwen/Qwen2.5-1.5B-Instruct-AWQ
+      --quantization=awq
+      --dtype=half
+      --max-model-len=4096
+      --gpu-memory-utilization=0.35
+      --enable-auto-tool-choice
+      --tool-call-parser=hermes
+    State:          Waiting
+      Reason:       CreateContainerConfigError
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:             4
+      memory:          16Gi
+      nvidia.com/gpu:  1
+    Requests:
+      cpu:             4
+      memory:          16Gi
+      nvidia.com/gpu:  1
+    Readiness:         http-get http://:8000/health delay=0s timeout=1s period=5s #success=1 #failure=3
+    Startup:           http-get http://:8000/health delay=0s timeout=1s period=10s #success=1 #failure=60
+    Environment:
+      VLLM_API_KEY:  <set to the key 'api-key' in secret 'serving-keys'>  Optional: false
+    Mounts:
+      /root/.cache/huggingface from hf-cache (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-jk2k9 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  hf-cache:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/lib/hf-cache
+    HostPathType:  DirectoryOrCreate
+  kube-api-access-jk2k9:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Guaranteed
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+

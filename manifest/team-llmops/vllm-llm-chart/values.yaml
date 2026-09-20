@@ -1,0 +1,58 @@
+replicas: 1
+
+image: vllm/vllm-openai:v0.27.1
+# Qwen3.5-9B
+model:
+  id: /models/Qwen3.5-9B
+  # quantization: awq
+  dtype: auto
+  maxModelLen: 64000
+  gpuMemoryUtilization: "0.5"
+  maxNumSeqs: 64
+
+  autoToolChoice: true
+  toolCallParser: hermes
+
+# We are managing the secret for the API key from the terminal.
+apiKeySecret: 
+  name: serving-keys
+  key: api-key
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  #nodePort: 30800
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 6Gi
+    nvidia.com/gpu: 1
+  limits:
+    cpu: "4"
+    memory: 6Gi
+    nvidia.com/gpu: 1
+
+modelCache:
+  hostPath: /var/lib/hf-cache
+  mountPath: /root/.cache/huggingface
+
+startupProbe:
+  periodSeconds: 10
+  failureThreshold: 60
+
+readinessProbe:
+  periodSeconds: 5
+  failureThreshold: 3
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUPercent: 70
+  scaleDownStabilizationSeconds: 300
+
+modelVolume:
+  hostPath: /home/nassir/models/Qwen3.5-9B
+  mountPath: /models/Qwen3.5-9B

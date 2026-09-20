@@ -1,0 +1,80 @@
+[
+    {
+        "received_at": "2026-09-14T09:57:14+00:00",
+        "status": "firing",
+        "alerts": [
+            {
+                "status": "firing",
+                "labels": {
+                    "alertname": "test"
+                },
+                "annotations": {},
+                "startsAt": null,
+                "endsAt": null,
+                "values": {}
+            }
+        ]
+    },
+    {
+        "received_at": "2026-09-14T10:00:32+00:00",
+        "status": "firing",
+        "alerts": [
+            {
+                "status": "firing",
+                "labels": {
+                    "alertname": "TestAlert",
+                    "instance": "Grafana"
+                },
+                "annotations": {
+                    "summary": "Notification test"
+                },
+                "startsAt": "2026-09-14T10:00:32.551346462Z",
+                "endsAt": "0001-01-01T00:00:00Z",
+                "values": null
+            }
+        ]
+    },
+    {
+        "received_at": "2026-09-14T10:00:42+00:00",
+        "status": "firing",
+        "alerts": [
+            {
+                "status": "firing",
+                "labels": {
+                    "alertname": "TestAlert",
+                    "instance": "Grafana"
+                },
+                "annotations": {
+                    "summary": "Notification test"
+                },
+                "startsAt": "2026-09-14T10:00:42.168364582Z",
+                "endsAt": "0001-01-01T00:00:00Z",
+                "values": null
+            }
+        ]
+    },
+    {
+        "received_at": "2026-09-14T10:20:10+00:00",
+        "status": "firing",
+        "alerts": [
+            {
+                "status": "firing",
+                "labels": {
+                    "alertname": "Team service alert",
+                    "grafana_folder": "Yaser Lab"
+                },
+                "annotations": {
+                    "description": "p95 time-to-first-token has exceeded 2 seconds for over 5 minutes, indicating the availability of low-latency responses is degraded.",
+                    "summary": "vLLM latency (TTFT p95) above target"
+                },
+                "startsAt": "2026-09-14T10:19:40Z",
+                "endsAt": "0001-01-01T00:00:00Z",
+                "values": {
+                    "A": 0.07000000000000002,
+                    "B": 0.07000000000000002,
+                    "C": 0
+                }
+            }
+        ]
+    }
+]
