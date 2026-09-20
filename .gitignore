@@ -1,7 +1,9 @@
 # --- Secrets / environment config ---
+
 .env
 .env.*
 !.env.example
+*.env
 *.pem
 *.key
 *_rsa
@@ -12,28 +14,60 @@ HF_TOKEN
 kaggle.json
 
 # --- Python ---
-__pycache__/
+
+**pycache**/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# --- Build / distribution ---
+
+bin/
 build/
+develop-eggs/
 dist/
-*.egg-info/
+downloads/
+eggs/
 .eggs/
-.pytest_cache/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # --- Virtual environments ---
+
 .venv/
 .venv-*/
 venv/
 env/
 ENV/
+.env/
+env.bak/
+venv.bak/
+pip-wheel-metadata/
 
 # --- Jupyter ---
+
 .ipynb_checkpoints/
 
+# --- Testing / coverage ---
+
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+
 # --- IDE / OS ---
+
 .vscode/
 .idea/
 *.swp
@@ -41,6 +75,7 @@ ENV/
 .DS_Store
 
 # --- Model weights and caches (huge; git keeps every version) ---
+
 *.safetensors
 *.gguf
 *.bin
@@ -56,19 +91,32 @@ huggingface_cache/
 .huggingface/
 
 # --- Logs / temp / runtime ---
+
 *.log
 *.tmp
 *.pid
 nohup.out
 
+# --- Runtime / generated output ---
+
+/result/*
+
 # --- Fonts pulled in ad hoc ---
+
 *.ttf
 *.otf
 
 # --- Local scripts ---
+
 setup.sh
 
+# --- Celery ---
+
+celerybeat-schedule
+celerybeat.pid
+
 # --- Parsing benchmark: real resumes (PII), never commit raw data ---
+
 eval/parsing_benchmark/acrchive/
 eval/parsing_benchmark/archive/
 eval/parsing_benchmark/data/raw/
@@ -78,5 +126,6 @@ eval/parsing_benchmark/data/
 eval/parsing_benchmark/results/
 
 # Model outputs on PII documents: ignore contents, keep metrics CSVs
+
 eval/parsing_benchmark/results/*
 !eval/parsing_benchmark/results/metrics_*.csv

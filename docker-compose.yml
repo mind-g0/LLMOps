@@ -40,6 +40,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: llmops-node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - '/:/host:ro,rslave'
 volumes:
   qdrant_storage:
   qdrant_config:
