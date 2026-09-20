@@ -4,38 +4,50 @@
 cv3.md
 
 [CANDIDATE CV PREVIEW]
-Name: Joyce James
-Location: Kottayam, Kerala, India
-Contact: joyjer80@gmail.com | +91-9880479867
-Skills: Manual Testing, Automation Testing, Selenium, ConformiQ, Jira, QC, Rally, SQL Developer, Agile Methodology, Multi Browser Testing, Device Testing, Test Case Writing, Test Case Execution, System Testing, VV&T Testing, UI Development, Dotnet, Java
-Languages: English, Hindi, Telugu, Malayalam
+Name: Saad Al-Rashid
+Location: Riyadh, Saudi Arabia
+Contact: saad.alrashid@emailpro.net | +966 55 912 7834
+Links:
+  - GitHub: N/A
+  - LinkedIn: N/A
+  - Portfolio: N/A
+Languages: N/A
+Skills: Python, Django, Node.js, RESTful APIs, PostgreSQL, Redis, Microservices Architecture, Docker, AWS, Continuous Integration, Unit Testing, Agile Methodologies
+
+Education:
+- Bachelor of Science in Computer Engineering at Prince Sultan University (2017)
+
+Experience (5.0 YOE):
+- Backend Engineer at BazaarCart (2021 - Present)
+- Software Developer at Suqly (2018 - 2021)
+- Junior Backend Developer at Atlas Digital Solutions (2017 - 2018)
+
+Projects:
+None listed (Needs Review)
+
+Certifications:
+None listed
 
 Summary:
-Software Engineer (Tester) with 2 years of experience at Tech Mahindra in the Telecom domain. Proficient in both manual and automation testing using tools like Selenium, ConformiQ, Jira, and Rally. Successfully executed multi-browser and device testing for major clients including British Telecom and at&t. Skilled in test case writing, execution, and defect tracking within Agile environments. Experience includes UI development tasks involving conversion from Dotnet to Java and front-end XML page development.
+Resourceful Backend Engineer with 5 years of hands-on experience building and scaling reliable, high-traffic systems for e-commerce platforms. Adept at designing robust APIs, optimizing database performance, and integrating third-party services. Enjoys tackling complex system challenges and collaborating in agile development teams to deliver features that enhance customer experiences.
 
 [TARGET JOB REQUIREMENT]
 Title: Sia Data Ai Jd
 
 [EVALUATION METRICS]
-Match Score: 5.0%
+Match Score: 85.0%
 
 [STRENGTHS]
-- Possesses a Bachelor's degree in Computer Engineering, which aligns with the educational requirement.
-- Has 2 years of professional experience in the IT domain, specifically in testing and telecom.
-- Familiar with Agile methodologies, which is mentioned in the job description.
-- Has experience with SQL Developer, which relates to data handling, though not at the required depth.
-- Good communication skills indicated by knowledge of multiple languages (English, Hindi, Telugu, Malayalam).
+- Strong alignment with backend engineering role: 5+ years of YOE matches typical expectations for mid-level backend positions.
+- Direct match on core technical stack: Python, Django, Node.js, PostgreSQL, Redis, Docker, AWS, and RESTful APIs are explicitly listed in both CV and JD requirements.
+- Relevant domain experience: Experience in e-commerce platforms (BazaarCart, Suqly) aligns with high-traffic system requirements.
+- Demonstrated architectural skills: Mentions of microservices, API design, and database optimization show practical application of required skills.
+- Education match: Bachelor of Science in Computer Engineering from a recognized university meets standard educational requirements.
 
 [GAPS & MISSING SKILLS]
-- Severe lack of experience in Data Science, Machine Learning, AI, or Generative AI. The candidate has no exposure to Python-based AI/ML ecosystems (Pandas, Scikit-learn, TensorFlow, PyTorch, LangChain).
-- No experience with cloud platforms (Azure, AWS, GCP) or AI-specific services (Azure OpenAI, etc.).
-- No experience with LLM-powered solutions, RAG architectures, AI agents, or prompt engineering.
-- No experience in Data Engineering, ETL/ELT pipelines, or data architecture.
-- No experience in MLOps, model lifecycle management, or AI governance.
-- No experience in consulting, business development, proposal development, or client-facing strategy roles.
-- Experience level (2 years) is significantly below the required 4-10 years for the role.
-- The candidate's background is in Manual and Automation Testing, not in Data Science or AI implementation.
-- No mention of Arabic language proficiency, which is strongly preferred/required for the Middle East/GCC focus.
+- JD title 'Sia Data Ai' suggests a potential focus on AI/Data Science, but the CV lacks explicit AI/ML, data science, or advanced analytics experience.
+- No certifications listed in the CV, which could be a gap if the role requires specific industry certifications.
+- Limited mention of specific AI/ML tools or frameworks (e.g., TensorFlow, PyTorch, Scikit-learn) despite the 'Data Ai' in the job title.
 
 [RECOMMENDATION]
-Do Not Hire
+Recommended for Interview with Technical Screening Focus on AI/Data Capabilities

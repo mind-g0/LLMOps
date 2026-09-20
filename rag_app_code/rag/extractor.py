@@ -5,7 +5,6 @@ from typing import List, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load .env relative to project root
 project_root = Path(__file__).resolve().parent.parent
 load_dotenv(dotenv_path=project_root / ".env", override=True)
 
@@ -116,7 +115,9 @@ def extract_and_format_candidate_en(raw_cv_text: str) -> tuple:
     for p in extracted_data.projects:
         tech_part = f" [Tech: {', '.join(p.technologies_used)}]" if p.technologies_used else ""
         proj_list.append(f"- {p.project_name}: {p.description_english}{tech_part}")
-    projects_str = "\n".join(proj_list) if proj_list else "None listed"
+    
+    # Clearly highlight missing projects
+    projects_str = "\n".join(proj_list) if proj_list else "None listed (Needs Review)"
 
     cert_list = []
     for c in extracted_data.certifications:
