@@ -56,11 +56,15 @@ PROMPTS = {
     "qianfan_ocr":   {"native": QIANFAN_NATIVE_PROMPT, "control": CONTROL_PROMPT},
     "glm_ocr":       {"native": GLM_NATIVE_PROMPT,     "control": CONTROL_PROMPT},
     "qwen3_vl":      {"control": CONTROL_PROMPT},  
+    "qwen3_5_4b":    {"control": CONTROL_PROMPT},
 }
  
 # Models allowed to use the task-shaped ("resume" / "arabic_doc") variant as
 # an alternative to their bare native prompt, for the native-vs-task A/B.
-TASK_VARIANT_ALLOWED = {"qianfan_ocr", "glm_ocr", "qwen3_vl"}
+TASK_VARIANT_ALLOWED = {"qianfan_ocr", "glm_ocr", "qwen3_vl", "qwen3_5_4b"}
+
+
+NO_FIXED_NATIVE_PROMPT = {"qwen3_vl", "qwen3_5_4b"}
  
  
 def get_prompt(pipeline: str, variant: str, dataset: str) -> str:
@@ -80,8 +84,7 @@ def get_prompt(pipeline: str, variant: str, dataset: str) -> str:
             raise KeyError(f"No DATASET_TASK entry for {dataset!r} — add one before running.")
         return TASK_PROMPT[task]
  
-    if pipeline == "qwen3_vl" and variant == "native":
-        # qwen3_vl has no fixed native prompt by design — route to 'task'.
+    if pipeline in NO_FIXED_NATIVE_PROMPT and variant == "native":
         return get_prompt(pipeline, "task", dataset)
  
     if variant not in table:

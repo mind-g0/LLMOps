@@ -51,28 +51,28 @@ def get_decoding(pipeline_name: str, dataset_name: str | None = None) -> dict:
     if dataset_name and (pipeline_name, dataset_name) in PER_MODEL_DECODING_OVERRIDES:
         return {**RAW_DECODING, **PER_MODEL_DECODING_OVERRIDES[(pipeline_name, dataset_name)]}
     return {**RAW_DECODING, **PER_MODEL_DECODING_OVERRIDES.get(pipeline_name, {})}
-
-
+ 
+ 
 def build_pipeline(model_id: str, revision: str = "main", trust_remote_code: bool = False,
                     min_pixels: int | None = None, max_pixels: int | None = None,
                     device: int | None = None, quantize: str | None = None):
     """Shared loader for the pipeline() wrapper.
-
+ 
     device: GPU index to load onto. Defaults to the CUDA_DEVICE env var if
     set, else 0. Lets you point a run at an idle GPU on a shared box
     without killing anyone else's job on GPU 0.
-
+ 
     quantize: None (bf16, full footprint) | "8bit" | "4bit" -- via
     bitsandbytes, for fitting a model into limited free VRAM on a shared
     GPU instead of waiting or reducing someone else's job. 8bit roughly
     halves weight memory; 4bit roughly quarters it, at some quality cost --
     treat 4bit as a "make it fit today" option, not a benchmark-standard
     setting, and say so explicitly if you use it for the real 200-sample run.
-
+ 
     1-3 above, plus the two below, are the real fixes over a bare
     `pipeline("image-text-to-text", model=model_id)` call:
-
-    1. min_pixels/max_pixels -- for Qwen-VL-family models (Qwen3-VL;
+ 
+    1. min_pixels/max_pixels -- for Qwen-VL-family models (Qari, Qwen3-VL;
        verify before relying on it for any other architecture, since this
        is that family's own processor kwarg, not a universal one), this is
        the single biggest lever on OCR ACCURACY, not just speed: it sets
@@ -91,20 +91,20 @@ def build_pipeline(model_id: str, revision: str = "main", trust_remote_code: boo
        samples first.
     2. low_cpu_mem_usage=True -- faster, lighter-footprint loading, no
        downside, just previously omitted.
-
+ 
     Also prints the model's own generation_config after loading -- this is
     what "raw defaults" in RAW_DECODING actually resolves to for THIS
     model, so it's visible rather than assumed.
     """
     import torch
     from transformers import pipeline as hf_pipeline
-
+ 
     device = device if device is not None else int(os.environ.get("CUDA_DEVICE", 0))
-
+ 
     kwargs = dict(model=model_id, revision=revision, trust_remote_code=trust_remote_code,
                   dtype=torch.bfloat16, device=device,
                   model_kwargs={"attn_implementation": "sdpa", "low_cpu_mem_usage": True})
-
+ 
     if quantize in ("8bit", "4bit"):
         from transformers import BitsAndBytesConfig
         bnb_kwargs = ({"load_in_8bit": True} if quantize == "8bit"
@@ -117,7 +117,7 @@ def build_pipeline(model_id: str, revision: str = "main", trust_remote_code: boo
               f"-- fits in less VRAM at some quality cost; note this in the report if used for real results.")
     elif quantize is not None:
         raise ValueError(f"quantize must be None, '8bit' or '4bit', got {quantize!r}")
-
+ 
     if min_pixels is not None or max_pixels is not None:
         try:
             from transformers import AutoProcessor
@@ -129,7 +129,7 @@ def build_pipeline(model_id: str, revision: str = "main", trust_remote_code: boo
         except TypeError:
             print(f"WARNING: {model_id}'s processor doesn't accept min_pixels/max_pixels "
                   f"(architecture-specific, not universal) — loading with its own defaults instead.")
-
+ 
     pipe = hf_pipeline("image-text-to-text", **kwargs)
     try:
         print(f"[{model_id}] model's own generation_config (this is what 'raw' decoding "
@@ -137,8 +137,59 @@ def build_pipeline(model_id: str, revision: str = "main", trust_remote_code: boo
     except Exception:
         pass
     return pipe
-
-
+ 
+ 
+def build_processor_and_model(model_id: str, revision: str = "main", trust_remote_code: bool = False,
+                               min_pixels: int | None = None, max_pixels: int | None = None,
+                               device: int | None = None, quantize: str | None = None):
+    """Same loading logic as build_pipeline(), but returns (processor, model)
+    directly instead of a pipeline() wrapper. Needed whenever a call needs
+    to control something the high-level pipeline() doesn't reliably forward
+    -- e.g. enable_thinking=False for Qwen3-series models, which default to
+    generating a whole <think>...</think> reasoning block before the actual
+    answer (real latency cost, and not needed for a transcription task)."""
+    import torch
+    from transformers import AutoProcessor, AutoModelForImageTextToText
+ 
+    device = device if device is not None else int(os.environ.get("CUDA_DEVICE", 0))
+    model_kwargs = dict(revision=revision, trust_remote_code=trust_remote_code,
+                         dtype=torch.bfloat16, attn_implementation="sdpa")
+ 
+    if quantize in ("8bit", "4bit"):
+        from transformers import BitsAndBytesConfig
+        bnb_kwargs = ({"load_in_8bit": True} if quantize == "8bit"
+                      else {"load_in_4bit": True, "bnb_4bit_compute_dtype": torch.bfloat16})
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(**bnb_kwargs)
+        model_kwargs["device_map"] = {"": device}
+        print(f"[{model_id}] loading with {quantize} quantization on GPU {device} -- "
+              f"note this in your report if used for the real 200-sample run.")
+    elif quantize is not None:
+        raise ValueError(f"quantize must be None, '8bit' or '4bit', got {quantize!r}")
+    else:
+        model_kwargs["device_map"] = {"": device}
+        model_kwargs["low_cpu_mem_usage"] = True
+ 
+    processor_kwargs = dict(revision=revision, trust_remote_code=trust_remote_code)
+    if min_pixels is not None or max_pixels is not None:
+        try:
+            processor = AutoProcessor.from_pretrained(
+                model_id, min_pixels=min_pixels, max_pixels=max_pixels, **processor_kwargs)
+        except TypeError:
+            print(f"WARNING: {model_id}'s processor doesn't accept min_pixels/max_pixels "
+                  f"(architecture-specific, not universal) — loading with its own defaults instead.")
+            processor = AutoProcessor.from_pretrained(model_id, **processor_kwargs)
+    else:
+        processor = AutoProcessor.from_pretrained(model_id, **processor_kwargs)
+ 
+    model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
+    try:
+        print(f"[{model_id}] model's own generation_config (this is what 'raw' decoding "
+              f"actually means for this model): {model.generation_config}")
+    except Exception:
+        pass
+    return processor, model
+ 
+ 
 def load_image_pages(path: Path, dpi: int = PDF_RENDER_DPI) -> list[Image.Image]:
     """Every page of a PDF, not just the first -- taking page 1 only is
     what silently produced blank Education/Experience fields on multi-page
@@ -147,8 +198,8 @@ def load_image_pages(path: Path, dpi: int = PDF_RENDER_DPI) -> list[Image.Image]
         from pdf2image import convert_from_path
         return convert_from_path(str(path), dpi=dpi)
     return [Image.open(path).convert("RGB")]
-
-
+ 
+ 
 def load_env_file(*paths: Path) -> None:
     """Minimal .env loader using only stdlib -- no python-dotenv dependency.
     Checks each given path in order (first match wins), plus an ENV_FILE
@@ -161,7 +212,7 @@ def load_env_file(*paths: Path) -> None:
     if os.environ.get("ENV_FILE"):
         candidates.append(Path(os.environ["ENV_FILE"]))
     candidates.extend(paths)
-
+ 
     found = next((p for p in candidates if p.exists()), None)
     if found is None:
         checked = ", ".join(str(p) for p in candidates)
@@ -169,7 +220,7 @@ def load_env_file(*paths: Path) -> None:
               f"Set ENV_FILE=/path/to/.env to point at a different location, "
               f"or relying on already-exported environment variables instead.")
         return
-
+ 
     n_set = 0
     for line in found.read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -183,8 +234,8 @@ def load_env_file(*paths: Path) -> None:
             os.environ[key] = value
             n_set += 1
     print(f"Loaded {n_set} variable(s) from {found}")
-
-
+ 
+ 
 def iter_dataset_samples(sample_root: Path):
     """Yield (dataset_name, dataset_sample_dir, [doc_paths]) for each
     per-dataset subfolder under data/samples/. Skips empty/missing ones."""
@@ -194,8 +245,8 @@ def iter_dataset_samples(sample_root: Path):
         docs = sorted(p for p in dataset_dir.glob("doc_*.*"))
         if docs:
             yield dataset_dir.name, dataset_dir, docs
-
-
+ 
+ 
 def get_run_id() -> str:
     """Every script in one terminal session should write into the same
     results/runs/<RUN_ID>/ folder. Set once per session with
@@ -206,8 +257,8 @@ def get_run_id() -> str:
         print(f"NOTE: BENCHMARK_RUN_ID not set — using '{run_id}' for this script only.")
         print(f"      To group a full pass into one run folder: source start_new_run.sh")
     return run_id
-
-
+ 
+ 
 def write_run_manifest(out_dir: Path, *, pipeline: str, model_repo: str,
                         model_revision: str, prompt_variant: str, prompt_text: str,
                         decoding_params: dict, dataset_name: str, n_docs: int,
@@ -228,7 +279,7 @@ def write_run_manifest(out_dir: Path, *, pipeline: str, model_repo: str,
         transformers_version = transformers.__version__
     except ImportError:
         transformers_version = "unknown"
-
+ 
     manifest = {
         "pipeline": pipeline, "model_repo": model_repo, "model_revision": model_revision,
         "prompt_variant": prompt_variant, "prompt_text": prompt_text,
