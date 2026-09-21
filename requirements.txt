@@ -1,6 +1,6 @@
 fastapi==0.141.1 
 uvicorn==0.53.0
-httpx==1.0.dev6
+httpx==0.28.1
 pydantic==2.14.0b2
 python-dotenv==1.2.3
 sqlalchemy[asyncio]==2.0.36
