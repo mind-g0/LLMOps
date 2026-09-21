@@ -1,0 +1,190 @@
+{
+  "nav": {
+    "home": "Home",
+    "setup": "Setup",
+    "review": "Review",
+    "allCvs": "All CVs",
+    "api": "API",
+    "apiStatus": "API Status"
+  },
+
+  "home": {
+    "badge": "AI-Powered CV Review",
+    "poweredBy": "POWERED BY RAG & LLM",
+    "description": "Smarter CV review powered by AI. Compare candidate qualifications against job requirements, identify the strongest matches, and keep the final hiring decision in human hands.",
+    "startReview": "Start a Review",
+    "viewCvs": "View All CVs",
+    "howItWorks": "How It Works",
+    "workflowTitle": "Simple Review Workflow",
+    "workflowDescription": "From defining the job requirements to reviewing the final result, HR AI keeps the process simple, clear, and organized.",
+
+    "step1": {
+      "title": "Define Requirements",
+      "description": "Create clear job requirements including skills, experience, education, and certifications."
+    },
+
+    "step2": {
+      "title": "Process CVs",
+      "description": "Upload candidate CVs and process them using RAG and LLM-powered analysis."
+    },
+
+    "step3": {
+      "title": "Review Results",
+      "description": "Review AI-assisted results, compare requirements, and make the final human decision."
+    },
+
+    "teamLabel": "Our Team",
+    "teamTitle": "Meet the Team",
+    "teamDescription": "The team behind the HR AI CV review platform.",
+    "teamMember": "Team Member"
+  },
+
+  "setup": {
+    "badge": "Review Setup",
+    "title": "Job Requirements & CV Upload",
+    "description": "Define the job requirements candidates will be evaluated against, then upload the CVs you want to process.",
+    "jobRequirements": "Job Requirements",
+    "jobRequirementsDescription": "Configure up to three job requirements for the CV review process.",
+    "maximumJobs": "Maximum 3 Jobs"
+  },
+
+  "jobCard": {
+    "job": "Job",
+    "jobRequirement": "Job Requirement",
+    "edit": "Edit",
+    "saved": "Job requirement saved",
+    "jobName": "Job Name",
+    "jobNamePlaceholder": "Example: AI Engineer",
+    "jobTitle": "Job Title",
+    "jobTitlePlaceholder": "Example: Senior AI Engineer",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the role and responsibilities...",
+    "requiredSkills": "Required Skills",
+    "skillsPlaceholder": "Python, Machine Learning, RAG, LLM...",
+    "requiredExperience": "Required Experience",
+    "experiencePlaceholder": "Example: 3+ years",
+    "education": "Education / Certifications",
+    "educationPlaceholder": "Bachelor's degree, certifications...",
+    "saveJob": "Save Job",
+    "saveChanges": "Save Changes"
+  },
+
+  "cvUpload": {
+    "candidateCvs": "Candidate CVs",
+    "title": "Upload CVs",
+    "description": "Upload up to {{count}} candidate CVs in PDF or DOCX format.",
+    "fileCount": "{{current}} / {{max}} files",
+    "dropHere": "Drop your CVs here",
+    "dragDrop": "Drag & drop CVs here",
+    "browse": "or click to browse files from your computer",
+    "maxSize": "Max 10 MB",
+    "selectedCvs": "Selected CVs",
+    "reviewBeforeProcess": "Review the files before starting the process.",
+    "clearAll": "Clear All",
+    "remove": "Remove file",
+    "removeFile": "Remove {{fileName}}",
+    "addAtLeastOne": "Add at least one CV to continue.",
+    "readyToProcess_one": "{{count}} CV ready to process.",
+    "readyToProcess_other": "{{count}} CVs ready to process.",
+    "startProcess": "Start Process",
+
+    "errors": {
+      "invalidType": "{{fileName}}: only PDF and DOCX files are allowed.",
+      "fileTooLarge": "{{fileName}}: file size exceeds 10 MB.",
+      "duplicate": "{{fileName}}: this file has already been added.",
+      "maxFiles": "You can upload a maximum of {{count}} CVs."
+    }
+  },
+
+  "review": {
+    "badge": "CV Review Workspace",
+    "title": "Processed CV Review",
+    "description": "Review AI-assisted CV analysis and make the final human decision when required.",
+    "refresh": "Refresh",
+
+    "totalCvs": "Total CVs",
+    "approved": "Approved",
+    "needsHumanReview": "Needs Human Review",
+    "notApproved": "Not Approved",
+
+    "processedCvs": "Processed CVs",
+    "selectCv": "Select a CV to review",
+    "noProcessedCvs": "No processed CVs",
+    "processFromSetup": "Process CVs from the Setup page first.",
+
+    "selectACv": "Select a CV",
+    "selectCvDescription": "Select a processed CV to view its review details.",
+    "cvReview": "CV Review",
+    "evaluatedFor": "Evaluated for",
+
+    "ragSummary": "RAG Summary",
+    "noRagSummary": "No RAG summary available.",
+
+    "strengths": "Strengths",
+    "noStrengths": "No strengths available.",
+
+    "matchingRequirements": "Matching Requirements",
+    "noMatchingRequirements": "No matching requirements available.",
+
+    "missingRequirements": "Missing Requirements",
+    "noMissingRequirements": "No missing requirements.",
+
+    "rejectionReason": "Rejection Reason",
+    "processedDate": "Processed Date",
+    "jobRequirement": "Job Requirement",
+    "viewOriginalCv": "View Original CV",
+
+    "humanReview": "Human Review",
+    "finalDecision": "Final Decision",
+    "finalDecisionDescription": "This CV requires a human decision. Review the AI-assisted analysis before approving or rejecting the candidate.",
+
+    "approve": "Approve",
+    "confirmApprove": "Approve {{cvName}}?",
+    "approvedSuccessfully": "CV approved successfully.",
+
+    "confirmNotApproved": "Mark {{cvName}} as not approved?",
+    "markedNotApproved": "CV marked as not approved.",
+
+    "rejectionReasonRequired": "Please provide a rejection reason.",
+    "rejectionReasonDescription": "Provide a clear reason before marking this CV as not approved.",
+    "rejectionReasonPlaceholder": "Enter the rejection reason...",
+
+    "cancel": "Cancel",
+    "confirmNotApprovedButton": "Confirm Not Approved"
+  },
+
+  "allCvs": {
+    "badge": "CV Management",
+    "title": "All CVs",
+    "description": "Search, filter, and review all processed candidate CVs.",
+
+    "searchPlaceholder": "Search CV name...",
+    "allStatuses": "All Statuses",
+    "allJobs": "All Jobs",
+    "newestFirst": "Newest First",
+    "oldestFirst": "Oldest First",
+
+    "showing": "Showing",
+    "cvs": "CVs",
+
+    "noCvsFound": "No CVs found",
+    "tryChangingFilters": "Try changing your search or filters.",
+
+    "cvName": "CV Name",
+    "status": "Status",
+    "job": "Job",
+    "date": "Date",
+    "action": "Action",
+    "details": "Details",
+
+    "page": "Page",
+    "of": "of",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "footer": {
+    "rights": "All rights reserved.",
+    "collaboration": "Developed in collaboration with"
+  }
+}
