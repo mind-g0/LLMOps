@@ -1,11 +1,81 @@
+# --- Secrets / environment config ---
+
 .env
 .env.*
 !.env.example
+*.env
 *.pem
+*.key
 *_rsa
 *_ed25519
 kubeconfig
 *.kubeconfig
+HF_TOKEN
+kaggle.json
+
+# --- Python ---
+
+**pycache**/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Build / distribution ---
+
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual environments ---
+
+.venv/
+.venv-*/
+venv/
+env/
+ENV/
+.env/
+env.bak/
+venv.bak/
+pip-wheel-metadata/
+
+# --- Jupyter ---
+
+.ipynb_checkpoints/
+
+# --- Testing / coverage ---
+
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+
+# --- IDE / OS ---
+
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Model weights and caches (huge; git keeps every version) ---
+
 .vscode
 
 # Model weights and caches. Gigabytes, and git keeps every version forever.
@@ -17,21 +87,48 @@ kubeconfig
 *.h5
 *.npz
 *.onnx
-models/
+/models/
 .cache/
 huggingface/
+huggingface_cache/
+.huggingface/
 
-# Python
-.venv/
-venv/
-env/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-*.egg-info/
+# --- Logs / temp / runtime ---
 
-# Regenerated output. Your results JSON is deliberately not here: commit it.
 *.log
+*.tmp
+*.pid
 nohup.out
-.DS_Store
-.ipynb_checkpoints/
+
+# --- Runtime / generated output ---
+
+/result/*
+
+# --- Fonts pulled in ad hoc ---
+
+*.ttf
+*.otf
+
+# --- Local scripts ---
+
+setup.sh
+
+# --- Celery ---
+
+celerybeat-schedule
+celerybeat.pid
+
+# --- Parsing benchmark: real resumes (PII), never commit raw data ---
+
+eval/parsing_benchmark/acrchive/
+eval/parsing_benchmark/archive/
+eval/parsing_benchmark/data/raw/
+eval/parsing_benchmark/data/samples/
+eval/parsing_benchmark/data/ground_truth/
+eval/parsing_benchmark/data/
+eval/parsing_benchmark/results/
+
+# Model outputs on PII documents: ignore contents, keep metrics CSVs
+
+eval/parsing_benchmark/results/*
+!eval/parsing_benchmark/results/metrics_*.csv
