@@ -9,11 +9,17 @@ data:
       scrape_interval: 5s
 
     scrape_configs:
-      - job_name: llmops-serving
+      - job_name: llmops-llm-serving
         metrics_path: /metrics
         static_configs:
           - targets:
-              - "llmops-serving:8000"
+              - "llmops-llm-serving:8000"
+
+      - job_name: llmops-ocr-serving
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - "llmops-ocr-serving:8001"
 
       - job_name: llmops-server
         metrics_path: /metrics
