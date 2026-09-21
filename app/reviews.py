@@ -13,6 +13,7 @@ from fastapi import (
     Query,
     UploadFile,
 )
+from fastapi.responses import Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -25,7 +26,7 @@ from app.schemas import (
     CVReviewUpdate,
     ReviewStatus,
 )
-from app.storage import get_cv_url, upload_cv
+from app.storage import download_cv, get_cv_url, upload_cv
 
 router = APIRouter(prefix="/api/v1/cv-reviews", tags=["cv-reviews"])
 
@@ -192,6 +193,28 @@ async def get_cv_file(
             status_code=503, detail="Unable to access CV in MinIO"
         ) from exc
     return {"url": url, "expires_in": 900}
+
+
+@router.get("/{review_id}/file-content")
+async def get_cv_file_content(
+    review_id: UUID, session: AsyncSession = Depends(get_db_session)
+):
+    review = await session.get(CVReview, review_id)
+    if review is None:
+        raise HTTPException(status_code=404, detail="CV review not found")
+    try:
+        data, content_type = await run_in_threadpool(
+            download_cv, review.cv_object_key
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="Unable to access CV in MinIO"
+        ) from exc
+    return Response(
+        content=data,
+        media_type=content_type or "application/octet-stream",
+        headers={"Content-Disposition": "inline"},
+    )
 
 
 @router.get("/{review_id}", response_model=CVReviewResponse)

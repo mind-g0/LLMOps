@@ -48,3 +48,13 @@ def get_cv_url(object_key: str, expires_seconds: int = 900) -> str:
     return get_minio_client().presigned_get_object(
         MINIO_BUCKET, object_key, expires=timedelta(seconds=expires_seconds)
     )
+
+
+def download_cv(object_key: str) -> tuple[bytes, str | None]:
+    minio_client = get_minio_client()
+    response = minio_client.get_object(MINIO_BUCKET, object_key)
+    data = response.read()
+    content_type = response.headers.get("Content-Type")
+    response.close()
+    response.release_conn()
+    return data, content_type
