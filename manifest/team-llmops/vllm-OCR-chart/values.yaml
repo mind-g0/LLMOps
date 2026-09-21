@@ -1,14 +1,14 @@
 replicas: 1
 
 image: vllm/vllm-openai:v0.27.1
-# Qianfan-OCR
+# Qwen3-VL-8B-Instruct
 model:
-  id: /models/Qianfan-OCR
+  id: /models/Qwen3-VL-8B-Instruct
   # quantization: awq
   dtype: auto
-  maxModelLen: 32768
-  gpuMemoryUtilization: "0.3"
-  maxNumSeqs: 64
+  maxModelLen: 16384
+  gpuMemoryUtilization: "0.45"
+  maxNumSeqs: 8
 
   autoToolChoice: true
   toolCallParser: hermes
@@ -26,12 +26,12 @@ service:
 
 resources:
   requests:
-    cpu: "2"
-    memory: 4Gi
+    cpu: "4"
+    memory: 12Gi
     nvidia.com/gpu: 1
   limits:
-    cpu: "2"
-    memory: 4Gi
+    cpu: "4"
+    memory: 12Gi
     nvidia.com/gpu: 1
 
 modelCache:
@@ -54,5 +54,5 @@ hpa:
   scaleDownStabilizationSeconds: 300
 
 modelVolume:
-  hostPath: /home/nassir/models/Qianfan-OCR
-  mountPath: /models/Qianfan-OCR
+  hostPath: /home/nassir/models/Qwen3-VL-8B-Instruct
+  mountPath: /models/Qwen3-VL-8B-Instruct
