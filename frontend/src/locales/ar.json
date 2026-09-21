@@ -1,0 +1,190 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "setup": "الإعداد",
+    "review": "المراجعة",
+    "allCvs": "السير الذاتية",
+    "api": "واجهة API",
+    "apiStatus": "حالة API"
+  },
+
+  "home": {
+    "badge": "مراجعة السير الذاتية بالذكاء الاصطناعي",
+    "poweredBy": "مدعوم بتقنيات RAG و LLM",
+    "description": "مراجعة أذكى للسير الذاتية باستخدام الذكاء الاصطناعي. قارن مؤهلات المرشحين بمتطلبات الوظيفة، وحدد أفضل حالات التطابق، مع إبقاء القرار النهائي بيد فريق التوظيف.",
+    "startReview": "ابدأ المراجعة",
+    "viewCvs": "عرض جميع السير الذاتية",
+    "howItWorks": "كيف يعمل النظام",
+    "workflowTitle": "خطوات مراجعة بسيطة وواضحة",
+    "workflowDescription": "من تحديد متطلبات الوظيفة إلى مراجعة النتيجة النهائية، يساعد HR AI على تنظيم عملية مراجعة السير الذاتية بشكل واضح وسهل.",
+
+    "step1": {
+      "title": "تحديد متطلبات الوظيفة",
+      "description": "حدد متطلبات الوظيفة بوضوح، بما في ذلك المهارات والخبرة والتعليم والشهادات المطلوبة."
+    },
+
+    "step2": {
+      "title": "معالجة السير الذاتية",
+      "description": "ارفع السير الذاتية للمرشحين ليتم تحليلها ومعالجتها باستخدام تقنيات RAG وLLM."
+    },
+
+    "step3": {
+      "title": "مراجعة النتائج",
+      "description": "راجع نتائج التحليل، وقارنها بمتطلبات الوظيفة، ثم اتخذ القرار النهائي."
+    },
+
+    "teamLabel": "فريقنا",
+    "teamTitle": "تعرف على الفريق",
+    "teamDescription": "الفريق المسؤول عن تطوير منصة HR AI لمراجعة السير الذاتية.",
+    "teamMember": "عضو الفريق"
+  },
+
+  "setup": {
+    "badge": "إعداد المراجعة",
+    "title": "متطلبات الوظيفة ورفع السير الذاتية",
+    "description": "حدد متطلبات الوظيفة التي سيتم تقييم المرشحين بناءً عليها، ثم ارفع السير الذاتية التي تريد معالجتها.",
+    "jobRequirements": "متطلبات الوظائف",
+    "jobRequirementsDescription": "يمكنك إعداد ما يصل إلى ثلاثة متطلبات وظيفية لعملية مراجعة السير الذاتية.",
+    "maximumJobs": "الحد الأقصى 3 وظائف"
+  },
+
+  "jobCard": {
+    "job": "الوظيفة",
+    "jobRequirement": "متطلبات الوظيفة",
+    "edit": "تعديل",
+    "saved": "تم حفظ متطلبات الوظيفة",
+    "jobName": "اسم الوظيفة",
+    "jobNamePlaceholder": "مثال: مهندس ذكاء اصطناعي",
+    "jobTitle": "المسمى الوظيفي",
+    "jobTitlePlaceholder": "مثال: مهندس ذكاء اصطناعي أول",
+    "description": "الوصف",
+    "descriptionPlaceholder": "اكتب وصف الوظيفة والمسؤوليات...",
+    "requiredSkills": "المهارات المطلوبة",
+    "skillsPlaceholder": "Python، تعلم الآلة، RAG، LLM...",
+    "requiredExperience": "الخبرة المطلوبة",
+    "experiencePlaceholder": "مثال: 3 سنوات أو أكثر",
+    "education": "التعليم / الشهادات",
+    "educationPlaceholder": "درجة البكالوريوس، الشهادات المهنية...",
+    "saveJob": "حفظ الوظيفة",
+    "saveChanges": "حفظ التعديلات"
+  },
+
+  "cvUpload": {
+    "candidateCvs": "السير الذاتية للمرشحين",
+    "title": "رفع السير الذاتية",
+    "description": "يمكنك رفع ما يصل إلى {{count}} سير ذاتية بصيغة PDF أو DOCX.",
+    "fileCount": "{{current}} / {{max}} ملفات",
+    "dropHere": "أفلت السير الذاتية هنا",
+    "dragDrop": "اسحب وأفلت السير الذاتية هنا",
+    "browse": "أو اضغط لاختيار الملفات من جهازك",
+    "maxSize": "الحد الأقصى 10 MB",
+    "selectedCvs": "السير الذاتية المحددة",
+    "reviewBeforeProcess": "راجع الملفات قبل بدء عملية المعالجة.",
+    "clearAll": "حذف الكل",
+    "remove": "إزالة الملف",
+    "removeFile": "إزالة {{fileName}}",
+    "addAtLeastOne": "أضف سيرة ذاتية واحدة على الأقل للمتابعة.",
+    "readyToProcess_one": "سيرة ذاتية واحدة جاهزة للمعالجة.",
+    "readyToProcess_other": "{{count}} سير ذاتية جاهزة للمعالجة.",
+    "startProcess": "بدء المعالجة",
+
+    "errors": {
+      "invalidType": "{{fileName}}: يُسمح فقط بملفات PDF وDOCX.",
+      "fileTooLarge": "{{fileName}}: حجم الملف يتجاوز 10 MB.",
+      "duplicate": "{{fileName}}: تمت إضافة هذا الملف مسبقًا.",
+      "maxFiles": "يمكنك رفع {{count}} سير ذاتية كحد أقصى."
+    }
+  },
+
+  "review": {
+    "badge": "مساحة مراجعة السير الذاتية",
+    "title": "مراجعة السير الذاتية المعالجة",
+    "description": "راجع تحليل السير الذاتية المدعوم بالذكاء الاصطناعي واتخذ القرار البشري النهائي عند الحاجة.",
+    "refresh": "تحديث",
+
+    "totalCvs": "إجمالي السير الذاتية",
+    "approved": "مقبول",
+    "needsHumanReview": "تحتاج مراجعة بشرية",
+    "notApproved": "غير مقبول",
+
+    "processedCvs": "السير الذاتية المعالجة",
+    "selectCv": "اختر سيرة ذاتية للمراجعة",
+    "noProcessedCvs": "لا توجد سير ذاتية معالجة",
+    "processFromSetup": "قم بمعالجة السير الذاتية من صفحة الإعداد أولًا.",
+
+    "selectACv": "اختر سيرة ذاتية",
+    "selectCvDescription": "اختر سيرة ذاتية معالجة لعرض تفاصيل المراجعة.",
+    "cvReview": "مراجعة السيرة الذاتية",
+    "evaluatedFor": "تم التقييم لوظيفة",
+
+    "ragSummary": "ملخص RAG",
+    "noRagSummary": "لا يتوفر ملخص RAG.",
+
+    "strengths": "نقاط القوة",
+    "noStrengths": "لا توجد نقاط قوة متاحة.",
+
+    "matchingRequirements": "المتطلبات المتطابقة",
+    "noMatchingRequirements": "لا توجد متطلبات متطابقة.",
+
+    "missingRequirements": "المتطلبات غير المتوفرة",
+    "noMissingRequirements": "لا توجد متطلبات مفقودة.",
+
+    "rejectionReason": "سبب عدم القبول",
+    "processedDate": "تاريخ المعالجة",
+    "jobRequirement": "متطلبات الوظيفة",
+    "viewOriginalCv": "عرض السيرة الذاتية الأصلية",
+
+    "humanReview": "المراجعة البشرية",
+    "finalDecision": "القرار النهائي",
+    "finalDecisionDescription": "تتطلب هذه السيرة الذاتية قرارًا بشريًا. راجع التحليل المدعوم بالذكاء الاصطناعي قبل قبول المرشح أو عدم قبوله.",
+
+    "approve": "قبول",
+    "confirmApprove": "هل تريد قبول {{cvName}}؟",
+    "approvedSuccessfully": "تم قبول السيرة الذاتية بنجاح.",
+
+    "confirmNotApproved": "هل تريد تحديد {{cvName}} كغير مقبول؟",
+    "markedNotApproved": "تم تحديد السيرة الذاتية كغير مقبولة.",
+
+    "rejectionReasonRequired": "يرجى كتابة سبب عدم القبول.",
+    "rejectionReasonDescription": "اكتب سببًا واضحًا قبل تحديد السيرة الذاتية كغير مقبولة.",
+    "rejectionReasonPlaceholder": "اكتب سبب عدم القبول...",
+
+    "cancel": "إلغاء",
+    "confirmNotApprovedButton": "تأكيد عدم القبول"
+  },
+
+  "allCvs": {
+    "badge": "إدارة السير الذاتية",
+    "title": "جميع السير الذاتية",
+    "description": "ابحث وصفِّ وراجع جميع السير الذاتية للمرشحين التي تمت معالجتها.",
+
+    "searchPlaceholder": "ابحث باسم السيرة الذاتية...",
+    "allStatuses": "جميع الحالات",
+    "allJobs": "جميع الوظائف",
+    "newestFirst": "الأحدث أولًا",
+    "oldestFirst": "الأقدم أولًا",
+
+    "showing": "عرض",
+    "cvs": "سير ذاتية",
+
+    "noCvsFound": "لم يتم العثور على سير ذاتية",
+    "tryChangingFilters": "جرّب تغيير البحث أو خيارات التصفية.",
+
+    "cvName": "اسم السيرة الذاتية",
+    "status": "الحالة",
+    "job": "الوظيفة",
+    "date": "التاريخ",
+    "action": "الإجراء",
+    "details": "التفاصيل",
+
+    "page": "الصفحة",
+    "of": "من",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "footer": {
+    "rights": "جميع الحقوق محفوظة.",
+    "collaboration": "تم التطوير بالتعاون مع"
+  }
+}
