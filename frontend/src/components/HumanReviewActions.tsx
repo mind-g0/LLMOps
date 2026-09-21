@@ -103,8 +103,10 @@ function HumanReviewActions({
           role="status"
           className="mt-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300"
         >
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold dark:bg-green-900">
-            ✓
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-green-700 dark:text-green-300">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
           </span>
 
           <p>{successMessage}</p>

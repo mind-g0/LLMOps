@@ -133,6 +133,7 @@
     "processedDate": "Processed Date",
     "jobRequirement": "Job Requirement",
     "viewOriginalCv": "View Original CV",
+    "noFileAvailable": "Original CV file is not available.",
 
     "humanReview": "Human Review",
     "finalDecision": "Final Decision",
@@ -181,6 +182,10 @@
     "of": "of",
     "previous": "Previous",
     "next": "Next"
+  },
+
+  "cvPreview": {
+    "download": "Download"
   },
 
   "footer": {

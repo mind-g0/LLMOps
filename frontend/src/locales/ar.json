@@ -133,6 +133,7 @@
     "processedDate": "تاريخ المعالجة",
     "jobRequirement": "متطلبات الوظيفة",
     "viewOriginalCv": "عرض السيرة الذاتية الأصلية",
+    "noFileAvailable": "الملف الأصلي للسيرة الذاتية غير متوفر.",
 
     "humanReview": "المراجعة البشرية",
     "finalDecision": "القرار النهائي",
@@ -181,6 +182,10 @@
     "of": "من",
     "previous": "السابق",
     "next": "التالي"
+  },
+
+  "cvPreview": {
+    "download": "تحميل"
   },
 
   "footer": {

@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { api } from '../api'
 
 const MAX_FILES = 10
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const ALLOWED_EXTENSIONS = ['pdf', 'docx']
 
-function CvUpload() {
+function CvUpload({ jobRequirementId }: { jobRequirementId?: string }) {
   const { t } = useTranslation()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -13,6 +14,7 @@ function CvUpload() {
   const [files, setFiles] = useState<File[]>([])
   const [error, setError] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 KB'
@@ -139,6 +141,23 @@ function CvUpload() {
   const clearAll = () => {
     setFiles([])
     setError('')
+  }
+
+  const startProcess = async () => {
+    if (!jobRequirementId) {
+      setError('Save a job requirement before uploading CVs.')
+      return
+    }
+    setIsUploading(true)
+    setError('')
+    try {
+      await Promise.all(files.map((file) => api.uploadReview(file, jobRequirementId)))
+      setFiles([])
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Upload failed')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -360,10 +379,11 @@ function CvUpload() {
 
           <button
             type="button"
-            disabled={files.length === 0}
+            disabled={files.length === 0 || isUploading}
+            onClick={startProcess}
             className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
           >
-            {t('cvUpload.startProcess')}
+            {isUploading ? 'Uploading...' : t('cvUpload.startProcess')}
           </button>
 
         </div>
