@@ -8,10 +8,10 @@ Build a new frontend from scratch using:
 - Tailwind CSS
 - React Router
 
-The current frontend folder is empty. Put the new project in:
+The frontend project belongs in the repository's `frontend/` directory:
 
 ```text
-app/frontend/
+frontend/
 ```
 
 ## Product Goal
@@ -28,13 +28,13 @@ The frontend is an HR CV review application. A user will:
 
 ## Frontend Environment
 
-Create `app/frontend/.env.example`:
+Create `frontend/.env.example`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8004
 ```
 
-Each developer creates a local `app/frontend/.env` with the same variable.
+Each developer creates a local `frontend/.env` with the same variable.
 
 Use it like this:
 
@@ -426,7 +426,7 @@ The client must:
 ## Suggested Project Structure
 
 ```text
-app/frontend/
+frontend/
 |-- src/
 |   |-- api/
 |   |   |-- client.ts
@@ -459,7 +459,7 @@ app/frontend/
 
 ## Completion Checklist
 
-- [ ] React/Vite/TypeScript/Tailwind project created in `app/frontend/`.
+- [ ] React/Vite/TypeScript/Tailwind project created in `frontend/`.
 - [ ] `.env.example` contains only `VITE_API_BASE_URL`.
 - [ ] Four routes are implemented.
 - [ ] Page 1 explains the team and product.
