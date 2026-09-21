@@ -11,9 +11,20 @@ load_dotenv()
 
 router = APIRouter()
 
-MODEL_LLM_URL = os.environ["MODEL_LLM_URL"]
-MODEL_OCR_URL = os.environ["MODEL_OCR_URL"]
+MODEL_LLM_BASE_URL = os.environ["MODEL_LLM_BASE_URL"].rstrip("/")
+MODEL_OCR_BASE_URL = os.environ["MODEL_OCR_BASE_URL"].rstrip("/")
 LLM_API_KEY = os.environ["LLM_API_KEY"]
+
+
+def upstream_error(exc: httpx.HTTPError) -> HTTPException:
+    if isinstance(exc, httpx.HTTPStatusError):
+        detail = (
+            f"Model backend returned HTTP {exc.response.status_code}: "
+            f"{exc.response.text[:500]}"
+        )
+    else:
+        detail = f"Error contacting model backend: {exc}"
+    return HTTPException(status_code=502, detail=detail)
 
 
 @router.post("/v1/chat/completions")
@@ -21,28 +32,27 @@ async def route_request(request: SingleRouteRequest):
     task_type, payload = request.route_payload()
 
     if task_type == "llm":
-        target_url = MODEL_LLM_URL
+        base_url = MODEL_LLM_BASE_URL
         headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
     elif task_type == "ocr":
-        target_url = MODEL_OCR_URL
-        headers = {}
+        base_url = MODEL_OCR_BASE_URL
+        headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
     else:
         raise HTTPException(
             status_code=400, detail="Invalid task_type. Use 'llm' or 'ocr'."
         )
 
-    if not target_url:
+    if not base_url:
         raise HTTPException(
             status_code=503,
             detail=f"No backend URL configured for task_type '{task_type}'",
         )
 
+    target_url = f"{base_url}/chat/completions"
     try:
         async with httpx.AsyncClient() as client:
             if task_type == "llm" and "model" not in payload:
-                models_url = (
-                    target_url.removesuffix("/chat/completions") + "/models"
-                )
+                models_url = f"{base_url}/models"
                 models_response = await client.get(models_url, headers=headers)
                 models_response.raise_for_status()
                 models = models_response.json().get("data", [])
@@ -53,10 +63,7 @@ async def route_request(request: SingleRouteRequest):
                     )
                 payload["model"] = models[0]["id"]
     except httpx.HTTPError as exc:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Error contacting model backend: {exc}",
-        )
+        raise upstream_error(exc) from exc
 
     if payload.get("stream"):
 
@@ -89,7 +96,4 @@ async def route_request(request: SingleRouteRequest):
             response.raise_for_status()
             return response.json()
     except httpx.HTTPError as exc:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Error contacting model backend: {exc}",
-        )
+        raise upstream_error(exc) from exc
