@@ -1,211 +1,322 @@
-# Agentic AI Serving Stack Team LLMOps
-this repository is the code for the Agentic AI Serving Stack and RAG of HR Ai project. It is a complete stack for serving LLMs and RAG, and it is designed to be used in a team setting. The stack is built on top of Docker and Docker Compose, and it is designed to be easy to use and easy to extend.
-## What is here
+# LLMOps Gateway
 
+FastAPI gateway for the HR AI platform. It routes requests to the configured LLM
+or OCR backend, discovers the available LLM model automatically, supports token
+streaming, and persists CV review results in PostgreSQL and MinIO.
+
+The RAG pipeline is intentionally not implemented in this repository yet. The
+handoff contract for the RAG team is documented in
+[RAG_INTEGRATION.md](RAG_INTEGRATION.md).
+
+## Architecture
+
+```text
+Frontend
+   |
+   v
+FastAPI gateway :8004
+   |-- LLM backend (authenticated)
+   |-- OCR backend
+   |-- PostgreSQL: review metadata and decisions
+   `-- MinIO: original CV files
 ```
-app/        
-docs/       the API contract the Agentic AI cohort integrates against
-scripts/    verify-env.sh, which checks your machine against what the labs need
-PINS.md     every version this course depends on
-setup.md    how to work in this repository
+
+## Repository Structure
+
+```text
+LLMOps/
+|-- app/                    Backend application
+|   |-- main.py             FastAPI entrypoint and app lifecycle
+|   |-- gateway.py          LLM/OCR proxy and token streaming
+|   |-- db.py               Async PostgreSQL connection
+|   |-- models.py           SQLAlchemy ORM models
+|   |-- reviews.py          CV review persistence endpoints
+|   |-- storage.py          MinIO connection and CV uploads
+|   `-- schemas.py           API request schemas
+|-- app/frontend/           React/Tailwind frontend workspace
+|-- manifest/               Kubernetes manifests and team material
+|-- docker-compose.yml      Local PostgreSQL, MinIO, and supporting services
+|-- Dockerfile              Backend container image
+|-- requirements.txt        Python dependencies
+|-- .env.example            Configuration template
+|-- README.md               Repository overview and setup
+`-- RAG_INTEGRATION.md      RAG team handoff contract
 ```
 
-That is the whole repository, and the shortness of that list is the point. You
-are not given a finished system to read. You build one, a day at a time, and by
-week 6 another cohort's agents are calling it.
+Frontend implementation requirements are in
+[FRONTEND_TEAM_INSTRUCTIONS.md](FRONTEND_TEAM_INSTRUCTIONS.md). Backend gaps
+and planned API work are tracked in
+[UNCOMPLETED_BACKEND.md](UNCOMPLETED_BACKEND.md).
 
-## What you add, and when
+### Current Request Flow
 
-| Week | Day | What you add                                                |
-| ---- | --- | ----------------------------------------------------------- |
-| 2    | Mon | `app/` behind an OpenAI-compatible `/v1` on CPU             |
-| 2    | Tue | `Dockerfile`, and your image on Docker Hub                  |
-| 2    | Wed | `Dockerfile.gpu`, the same code on a GPU                    |
-| 2    | Thu | `compose.yaml`, the stack described rather than run by hand |
-| 3    | Thu | `bench/`, the harness that measures all of it               |
+```text
+Client
+  |
+  | POST /v1/chat/completions
+  v
+app/main.py
+  |
+  v
+app/gateway.py
+  |-- task_type = llm -> configured LLM backend
+  `-- task_type = ocr -> configured OCR backend
+```
 
-Each one is a lab, and each one starts from files that day hands you. Lab
-instructions, decks and quizzes are on the course Drive, one folder per week.
-This repository is your code.
+For an LLM request, the gateway discovers the available model automatically,
+adds the backend authentication header, and either returns the complete response
+or streams SSE chunks when `payload.stream` is true.
 
-## Start here
+### Current CV Persistence Flow
+
+```text
+CV file + approval decision
+  |
+  v
+POST /api/v1/cv-reviews
+  |-- app/storage.py -> original CV in MinIO
+  `-- app/models.py  -> decision metadata in PostgreSQL
+```
+
+The current repository stores review results, but it does not perform OCR,
+embeddings, retrieval, or HR evaluation yet.
+
+## Planned RAG Structure
+
+The RAG team will add the RAG pipeline under `app/rag/`. This keeps RAG logic
+separate from the gateway, database, and MinIO integrations that already exist.
+
+```text
+app/rag/
+|-- __init__.py
+|-- pipeline.py       Main CV analysis orchestration
+|-- schemas.py        Validated RAG input and output models
+|-- prompts.py        HR evaluation prompts and output instructions
+|-- extractor.py      PDF/DOCX text extraction and OCR calls
+|-- chunker.py        Splitting CV and HR documents into chunks
+|-- embeddings.py     Embedding model client
+|-- retriever.py      Vector search and HR context retrieval
+`-- evaluator.py      LLM evaluation and structured decision parsing
+```
+
+The planned RAG flow is:
+
+```text
+CV upload
+  -> extract text
+  -> split text into chunks
+  -> create embeddings
+  -> retrieve HR requirements
+  -> ask the LLM for a structured decision
+  -> validate the decision
+  -> save CV through /api/v1/cv-reviews
+```
+
+The RAG pipeline should expose one clear application-level function:
+
+```python
+async def analyze_cv(cv_bytes: bytes, filename: str) -> CVDecision:
+    ...
+```
+
+It must return:
+
+```json
+{
+  "approved": false,
+  "rejection_reason": "Missing required experience"
+}
+```
+
+The RAG team owns extraction, chunking, embeddings, retrieval, prompts, and
+decision generation. It should use the existing gateway for model calls and the
+existing CV review endpoint for persistence. It should not create duplicate
+PostgreSQL or MinIO connection code.
+
+See [RAG_INTEGRATION.md](RAG_INTEGRATION.md) for the complete handoff contract.
+
+## Requirements
+
+- Python 3.12+
+- Docker and Docker Compose
+- PostgreSQL
+- MinIO
+- A configured LLM backend with an OpenAI-compatible API
+
+## Configuration
+
+Copy the example environment file and fill in real values:
 
 ```bash
-./scripts/verify-env.sh     # checks your machine, writes verify-env-report.json
+cp .env.example .env
 ```
 
-Then read `setup.md`. It is short, and it covers the two things that go wrong:
-committing a key, and committing a model.
+Never commit `.env` or API keys.
 
-## Build
+Important variables:
 
-```bash
-docker build -t mindg/ai-serve-stack .
+```env
+MODEL_LLM_URL=https://llm.example.com/v1/chat/completions
+MODEL_OCR_URL=http://localhost:8002/v1/chat/completions
+LLM_API_KEY=your-llm-api-key
+DATABASE_URL=postgresql+asyncpg://llmops:password@localhost:5432/llmops
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=admin
+MINIO_SECRET_KEY=your-minio-password
+MINIO_BUCKET=cv-files
+MINIO_SECURE=false
+CORS_ALLOW_ORIGINS=http://localhost:5500,http://127.0.0.1:5500
 ```
 
-## Run with local mount storage
+All variables above are required. The application does not provide fallback
+values for database, MinIO, model, or CORS configuration.
 
-- we can delete --rm and use -d to run the container in the background
-- change **/home/nassir/aidc-bootcamp/models/Qwen2.5-0.5B-Instruct** to you model path
-- change **mindg/ai-serve-stack** to your image name
+## Local Setup
+
+Install Python dependencies:
 
 ```bash
-docker run --rm -p 8000:8000 --env-file aidc-nassir-serving-stack/.env  --mount type=bind,source=/home/nassir/aidc-bootcamp/models/Qwen2.5-0.5B-Instruct,target=/model,readonly mindg/ai-serve-stack
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-## Run with named volume storage
-
-- we can delete --rm and use -d to run the container in the background
-- change **ai-models** to your volume name 
-- change **mindg/ai-serve-stack** to your image name
+Start PostgreSQL and MinIO:
 
 ```bash
-docker run --rm -p 8000:8000 --env-file aidc-nassir-serving-stack/.env -v ai-models:/app/.cache/huggingface mindg/ai-serve-stack
+docker compose up -d postgres llmops-s3
 ```
-### last update:
-### API Authentication
 
-The `/v1/chat/completions` route requires API authentication.
-
-Include your API key in the `Authorization` header when making requests.
-
-#### Example
+Start the API:
 
 ```bash
-curl -H "x-api-key: 86937aa022c3a035556bea0b8d5d2ec8" \
+uvicorn app.main:app --host 0.0.0.0 --port 8004
+```
+
+The application creates the `cv_reviews` table during startup. Production
+deployments should use database migrations instead of automatic table creation.
+
+Check the gateway:
+
+```bash
+curl http://localhost:8004/health
+```
+
+Expected response:
+
+```json
+{ "status": "healthy" }
+```
+
+## LLM Gateway
+
+The public gateway endpoint is:
+
+```text
+POST /v1/chat/completions
+```
+
+The client selects the backend with `task_type`. The gateway selects the model
+from the LLM backend's `/v1/models` endpoint when `model` is not supplied.
+
+Non-streaming request:
+
+```bash
+curl -X POST http://localhost:8004/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -X POST http://localhost:8000/v1/chat/completions \
   -d '{
-    "model": "Qwen/Qwen2.5-0.5B-Instruct",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hello"
-      }
-    ],
-    "max_tokens": 50
+    "task_type": "llm",
+    "payload": {
+      "stream": false,
+      "messages": [
+        {"role": "user", "content": "Hello"}
+      ],
+      "max_tokens": 50
+    }
   }'
 ```
-## GPU Time-Slicing
 
-The cluster has **1 NVIDIA GPU** shared between multiple vLLM Pods using the NVIDIA Device Plugin.
-
-### Configure GPU sharing
-
-Create the ConfigMap:
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nvidia-device-plugin-config
-  namespace: kube-system
-data:
-  time-slicing: |-
-    version: v1
-    sharing:
-      timeSlicing:
-        renameByDefault: false
-        failRequestsGreaterThanOne: true
-        resources:
-          - name: nvidia.com/gpu
-            replicas: 2
-```
-
-Apply it:
+Streaming request:
 
 ```bash
-kubectl apply -f nvidia-device-plugin-config.yaml
+curl -N -X POST http://localhost:8004/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_type": "llm",
+    "payload": {
+      "stream": true,
+      "messages": [
+        {"role": "user", "content": "Explain Kubernetes briefly."}
+      ],
+      "max_tokens": 100
+    }
+  }'
 ```
 
-Configure the NVIDIA Device Plugin:
+The gateway adds the configured LLM key as an internal Bearer token. Clients do
+not send the LLM key to the gateway.
+
+## CV Review Persistence
+
+Create a review record and upload the original CV:
 
 ```bash
-kubectl patch daemonset nvidia-device-plugin-daemonset \
-  -n kube-system \
-  --type='strategic' \
-  -p='
-spec:
-  template:
-    spec:
-      containers:
-      - name: nvidia-device-plugin-ctr
-        args:
-        - --config-file=/config/time-slicing
-        volumeMounts:
-        - name: config
-          mountPath: /config
-      volumes:
-      - name: config
-        configMap:
-          name: nvidia-device-plugin-config
-'
+curl -X POST http://localhost:8004/api/v1/cv-reviews \
+  -F "cv=@candidate.pdf" \
+  -F "approved=false" \
+  -F "rejection_reason=Missing required experience"
 ```
 
-Verify:
-
-```bash
-kubectl get node aidc-t03 \
-  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
-```
-
-Expected:
+Endpoints:
 
 ```text
-2
+POST /api/v1/cv-reviews       Upload CV and save decision
+GET  /api/v1/cv-reviews       List saved reviews
+GET  /api/v1/cv-reviews/{id}  Get one review
 ```
 
-Pods can now request:
+Each review stores the CV name, approval decision, rejection reason, MinIO
+object key, UUID, and creation time in PostgreSQL. The original CV is stored in
+MinIO under `cvs/<review-id>/<filename>`.
 
-```yaml
-resources:
-  limits:
-    nvidia.com/gpu: 1
-```
+`rejection_reason` is optional because the RAG decision format is still subject
+to human review. Approved and rejected records may both store a null reason.
 
-> **Important:** GPU time-slicing shares the GPU but does **not** divide VRAM. Multiple vLLM models can still compete for GPU memory and cause CUDA OOM.
+## Frontend
 
-### Revert GPU Time-Slicing
-
-Remove the time-slicing configuration:
+Start the static chat frontend in a second terminal:
 
 ```bash
-kubectl patch daemonset nvidia-device-plugin-daemonset \
-  -n kube-system \
-  --type='strategic' \
-  -p='
-spec:
-  template:
-    spec:
-      containers:
-      - name: nvidia-device-plugin-ctr
-        args: []
-        volumeMounts: []
-      volumes: []
-'
+python -m http.server 5500 --directory frontend
 ```
 
-Delete the ConfigMap:
-
-```bash
-kubectl delete configmap nvidia-device-plugin-config -n kube-system
-```
-
-Restart the Device Plugin:
-
-```bash
-kubectl rollout restart daemonset nvidia-device-plugin-daemonset -n kube-system
-```
-
-Verify:
-
-```bash
-kubectl get node aidc-t03 \
-  -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
-```
-
-Expected:
+Open:
 
 ```text
-1
+http://localhost:5500
+```
+
+The frontend sends streaming requests to the gateway at port `8004`.
+
+## RAG Integration
+
+The RAG team owns OCR, extraction, chunking, embeddings, retrieval, HR context,
+and decision generation. LLMOps owns model proxying, PostgreSQL, MinIO, and
+review persistence.
+
+Read [RAG_INTEGRATION.md](RAG_INTEGRATION.md) for the required decision schema,
+team responsibilities, and integration examples.
+
+## Validation
+
+Compile the Python application:
+
+```bash
+python -m py_compile app/*.py
+```
+
+Check the API health endpoint after starting the server:
+
+```bash
+curl http://localhost:8004/health
 ```
