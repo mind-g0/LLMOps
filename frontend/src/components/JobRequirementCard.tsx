@@ -1,32 +1,29 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { api, type JobRequirement } from '../api'
 
 interface JobRequirementCardProps {
   number: number
+  onSaved?: (job: JobRequirement) => void
 }
 
 interface JobFormData {
   jobName: string
   jobTitle: string
   description: string
-  requiredSkills: string
-  experience: string
-  education: string
 }
 
-function JobRequirementCard({ number }: JobRequirementCardProps) {
+function JobRequirementCard({ number, onSaved }: JobRequirementCardProps) {
   const { t } = useTranslation()
 
   const [isEditing, setIsEditing] = useState(true)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
 
   const [formData, setFormData] = useState<JobFormData>({
     jobName: '',
     jobTitle: '',
     description: '',
-    requiredSkills: '',
-    experience: '',
-    education: '',
   })
 
   const handleChange = (
@@ -40,9 +37,21 @@ function JobRequirementCard({ number }: JobRequirementCardProps) {
     }))
   }
 
-  const handleSave = () => {
-    setIsEditing(false)
-    setSaved(true)
+  const handleSave = async () => {
+    setError('')
+    try {
+      const job = await api.createJob({
+        name: formData.jobName || `Job ${number}`,
+        title: formData.jobTitle,
+        description: formData.description,
+        requirements: [],
+      })
+      onSaved?.(job)
+      setIsEditing(false)
+      setSaved(true)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unable to save job')
+    }
   }
 
   const handleEdit = () => {
@@ -89,6 +98,8 @@ function JobRequirementCard({ number }: JobRequirementCardProps) {
           {t('jobCard.saved')}
         </div>
       )}
+
+      {error && <p className="mb-5 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
       <div className="space-y-5">
 
@@ -139,57 +150,6 @@ function JobRequirementCard({ number }: JobRequirementCardProps) {
             disabled={!isEditing}
             rows={4}
             placeholder={t('jobCard.descriptionPlaceholder')}
-            className={`${inputStyle} resize-none`}
-          />
-        </div>
-
-        {/* Required Skills */}
-        <div>
-          <label className={labelStyle}>
-            {t('jobCard.requiredSkills')}
-          </label>
-
-          <textarea
-            name="requiredSkills"
-            value={formData.requiredSkills}
-            onChange={handleChange}
-            disabled={!isEditing}
-            rows={3}
-            placeholder={t('jobCard.skillsPlaceholder')}
-            className={`${inputStyle} resize-none`}
-          />
-        </div>
-
-        {/* Experience */}
-        <div>
-          <label className={labelStyle}>
-            {t('jobCard.requiredExperience')}
-          </label>
-
-          <input
-            type="text"
-            name="experience"
-            value={formData.experience}
-            onChange={handleChange}
-            disabled={!isEditing}
-            placeholder={t('jobCard.experiencePlaceholder')}
-            className={inputStyle}
-          />
-        </div>
-
-        {/* Education / Certifications */}
-        <div>
-          <label className={labelStyle}>
-            {t('jobCard.education')}
-          </label>
-
-          <textarea
-            name="education"
-            value={formData.education}
-            onChange={handleChange}
-            disabled={!isEditing}
-            rows={3}
-            placeholder={t('jobCard.educationPlaceholder')}
             className={`${inputStyle} resize-none`}
           />
         </div>

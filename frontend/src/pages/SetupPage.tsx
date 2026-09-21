@@ -1,9 +1,12 @@
+  import { useState } from 'react'
   import { useTranslation } from 'react-i18next'
+  import type { JobRequirement } from '../api'
 import JobRequirementCard from '../components/JobRequirementCard'
 import CvUpload from '../components/CvUpload'
 
 function SetupPage() {
   const { t } = useTranslation()
+  const [selectedJobId, setSelectedJobId] = useState<string>()
 
   return (
     <div className="py-6 sm:py-10">
@@ -45,9 +48,13 @@ function SetupPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <JobRequirementCard number={1} />
-          <JobRequirementCard number={2} />
-          <JobRequirementCard number={3} />
+          {[1, 2, 3].map((number) => (
+            <JobRequirementCard
+              key={number}
+              number={number}
+              onSaved={(job: JobRequirement) => setSelectedJobId(job.id)}
+            />
+          ))}
         </div>
       </section>
 
@@ -55,7 +62,7 @@ function SetupPage() {
 
       {/* CV Upload */}
       <section>
-        <CvUpload />
+        <CvUpload jobRequirementId={selectedJobId} />
       </section>
 
     </div>
