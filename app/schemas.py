@@ -8,8 +8,17 @@ ReviewStatus = Literal["approved", "not_approved", "needs_human_review"]
 
 
 class SingleRouteRequest(BaseModel):
-    task_type: str  # Must be "llm" or "ocr"
-    payload: dict[str, Any]
+    model_config = ConfigDict(extra="allow")
+
+    task_type: str | None = None
+    payload: dict[str, Any] | None = None
+
+    def route_payload(self) -> tuple[str, dict[str, Any]]:
+        if self.payload is not None:
+            return self.task_type or "llm", dict(self.payload)
+
+        body = self.model_dump(exclude={"task_type", "payload"}, exclude_none=True)
+        return self.task_type or "llm", body
 
 
 class JobRequirementCreate(BaseModel):

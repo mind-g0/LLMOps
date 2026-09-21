@@ -18,10 +18,12 @@ LLM_API_KEY = os.environ["LLM_API_KEY"]
 
 @router.post("/v1/chat/completions")
 async def route_request(request: SingleRouteRequest):
-    if request.task_type == "llm":
+    task_type, payload = request.route_payload()
+
+    if task_type == "llm":
         target_url = MODEL_LLM_URL
         headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
-    elif request.task_type == "ocr":
+    elif task_type == "ocr":
         target_url = MODEL_OCR_URL
         headers = {}
     else:
@@ -32,13 +34,12 @@ async def route_request(request: SingleRouteRequest):
     if not target_url:
         raise HTTPException(
             status_code=503,
-            detail=f"No backend URL configured for task_type '{request.task_type}'",
+            detail=f"No backend URL configured for task_type '{task_type}'",
         )
 
-    payload = dict(request.payload)
     try:
         async with httpx.AsyncClient() as client:
-            if request.task_type == "llm" and "model" not in payload:
+            if task_type == "llm" and "model" not in payload:
                 models_url = (
                     target_url.removesuffix("/chat/completions") + "/models"
                 )
