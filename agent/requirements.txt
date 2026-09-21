@@ -1,0 +1,14 @@
+# ---- agent app env (NOT the vLLM serving env) ----
+# dspy>=3.0
+# langgraph>=0.6
+# pydantic>=2.7
+qdrant-client>=1.12
+# sentence-transformers>=3.0     # BAAI/bge-m3 multilingual embeddings
+# docling>=2.0                   # text layer for digital PDF/DOCX
+pypdfium2>=4.30                # PDF -> page images
+# pillow>=10.0
+# tavily-python>=0.5
+trafilatura>=2.0               # job web page -> clean text
+# python-dotenv>=1.0
+# numpy>=1.26
+# pytest>=8.0

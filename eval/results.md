@@ -25,7 +25,7 @@
 
 ### resume_dataset_hf
 
-| Metric | Qianfan | Qwen3-VL | Docling (full) | Docling (simple) | Qwen3.5-4B |
+| Metric | Qianfan | Qwen3-VL-8B-Instruct | Docling (full) | Docling (simple) | Qwen3.5-4B |
 |---|---|---|---|---|---|
 | micro CER | 0.090 | **0.076** | 0.106 | 0.092 | 0.140 |
 | mean CER | 0.106 | **0.082** | 0.117 | 0.101 | 0.106 |
@@ -40,7 +40,7 @@
 
 ### synthetic_cv — overall
 
-| Metric | Qianfan | Qwen3-VL | Docling (full) | Docling (simple) | Qwen3.5-4B |
+| Metric | Qianfan | Qwen3-VL-8B-Instruct | Docling (full) | Docling (simple) | Qwen3.5-4B |
 |---|---|---|---|---|---|
 | micro CER | 0.097 | **0.070** | 0.142 | 0.142 | 0.202 |
 | mean CER | 0.118 | **0.079** | 0.165 | 0.165 | 0.252 |
@@ -56,7 +56,7 @@
 
 ### synthetic_cv — Arabic only
 
-| Metric | Qianfan | Qwen3-VL | Docling (full) | Docling (simple) | Qwen3.5-4B |
+| Metric | Qianfan | Qwen3-VL-8B-Instruct | Docling (full) | Docling (simple) | Qwen3.5-4B |
 |---|---|---|---|---|---|
 | micro CER | 0.228 | **0.165** | 0.298 | 0.298 | 0.481 |
 | mean CER | 0.232 | **0.155** | 0.298 | 0.297 | 0.501 |
@@ -69,7 +69,7 @@
 
 ### synthetic_cv — English only
 
-| Metric | Qianfan | Qwen3-VL | Docling (full) | Docling (simple) | Qwen3.5-4B |
+| Metric | Qianfan | Qwen3-VL-8B-Instruct | Docling (full) | Docling (simple) | Qwen3.5-4B |
 |---|---|---|---|---|---|
 | micro CER | 0.0034 | 0.0032 | 0.031 | 0.031 | 0.0034 |
 | micro WER | 0.0128 | 0.0148 | 0.073 | 0.073 | 0.0140 |
