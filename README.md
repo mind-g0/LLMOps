@@ -33,10 +33,7 @@ LLMOps/
 |   |-- reviews.py          CV review persistence endpoints
 |   |-- storage.py          MinIO connection and CV uploads
 |   `-- schemas.py           API request schemas
-|-- frontend/               Static chat frontend
-|   |-- index.html
-|   |-- styles.css
-|   `-- app.js
+|-- app/frontend/           React/Tailwind frontend workspace
 |-- manifest/               Kubernetes manifests and team material
 |-- docker-compose.yml      Local PostgreSQL, MinIO, and supporting services
 |-- Dockerfile              Backend container image
@@ -45,6 +42,11 @@ LLMOps/
 |-- README.md               Repository overview and setup
 `-- RAG_INTEGRATION.md      RAG team handoff contract
 ```
+
+Frontend implementation requirements are in
+[FRONTEND_TEAM_INSTRUCTIONS.md](FRONTEND_TEAM_INSTRUCTIONS.md). Backend gaps
+and planned API work are tracked in
+[UNCOMPLETED_BACKEND.md](UNCOMPLETED_BACKEND.md).
 
 ### Current Request Flow
 

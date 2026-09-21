@@ -40,3 +40,11 @@ def upload_cv(
         length=len(content),
         content_type=content_type or "application/octet-stream",
     )
+
+
+def get_cv_url(object_key: str, expires_seconds: int = 900) -> str:
+    from datetime import timedelta
+
+    return get_minio_client().presigned_get_object(
+        MINIO_BUCKET, object_key, expires=timedelta(seconds=expires_seconds)
+    )
