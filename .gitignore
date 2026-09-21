@@ -76,6 +76,9 @@ htmlcov/
 
 # --- Model weights and caches (huge; git keeps every version) ---
 
+.vscode
+
+# Model weights and caches. Gigabytes, and git keeps every version forever.
 *.safetensors
 *.gguf
 *.bin

@@ -11,16 +11,16 @@ load_dotenv()
 
 router = APIRouter()
 
-MODEL_LLM_URL = os.getenv("MODEL_LLM_URL")
-MODEL_OCR_URL = os.getenv("MODEL_OCR_URL")
-LLM_API_KEY = os.getenv("LLM_API_KEY")
+MODEL_LLM_URL = os.environ["MODEL_LLM_URL"]
+MODEL_OCR_URL = os.environ["MODEL_OCR_URL"]
+LLM_API_KEY = os.environ["LLM_API_KEY"]
 
 
 @router.post("/v1/chat/completions")
 async def route_request(request: SingleRouteRequest):
     if request.task_type == "llm":
         target_url = MODEL_LLM_URL
-        headers = {"Authorization": f"Bearer {LLM_API_KEY}"} if LLM_API_KEY else {}
+        headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
     elif request.task_type == "ocr":
         target_url = MODEL_OCR_URL
         headers = {}
@@ -39,7 +39,9 @@ async def route_request(request: SingleRouteRequest):
     try:
         async with httpx.AsyncClient() as client:
             if request.task_type == "llm" and "model" not in payload:
-                models_url = target_url.removesuffix("/chat/completions") + "/models"
+                models_url = (
+                    target_url.removesuffix("/chat/completions") + "/models"
+                )
                 models_response = await client.get(models_url, headers=headers)
                 models_response.raise_for_status()
                 models = models_response.json().get("data", [])
