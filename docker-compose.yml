@@ -40,6 +40,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: llmops-cloudbeaver
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8978:8978"
+    volumes:
+      - cloudbeaver_workspace:/opt/cloudbeaver/workspace
+
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: llmops-node-exporter
@@ -55,3 +66,4 @@ volumes:
   qdrant_config:
   S3_data:
   postgres_data:
+  cloudbeaver_workspace:
