@@ -24,7 +24,6 @@ def _int(name: str, default: int) -> int:
 def _bool(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
-
 # ── Models (self-hosted, OpenAI-compatible vLLM endpoints) ─────────────────
 VLM_API_BASE = _env("VLM_API_BASE", "")
 VLM_MODEL = _env("VLM_MODEL", "")  # multilingual (AR/EN)
@@ -34,11 +33,6 @@ VLM_MAX_TOKENS = _int("VLM_MAX_TOKENS", 8192)  # thinking tokens count toward th
 
 LLM_API_BASE = _env("LLM_API_BASE", "")
 LLM_MODEL = _env("LLM_MODEL", "")  # multilingual (AR/EN)
-
-
-
-
-
 
 LLM_TEMPERATURE = _float("LLM_TEMPERATURE", 0.0)
 LLM_MAX_TOKENS = _int("LLM_MAX_TOKENS", 4096)
@@ -110,6 +104,9 @@ CATALOG_MIN_SCORE = _float("CATALOG_MIN_SCORE", 0.55)
 TAVILY_API_KEY = _env("TAVILY_API_KEY", "")
 WEB_CACHE_TTL_DAYS = _float("WEB_CACHE_TTL_DAYS", 7)
 WEB_CACHE_MIN_SIM = _float("WEB_CACHE_MIN_SIM", 0.90)
+
+# ── Backend integration ─────────────────────────────────────────────────────
+BACKEND_API_BASE = _env("BACKEND_API_BASE", "")  # e.g. http://localhost:8004
 
 # ── Observability ──────────────────────────────────────────────────────────
 LOG_DIR = BASE_DIR / "logs"
