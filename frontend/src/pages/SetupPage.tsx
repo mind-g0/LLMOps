@@ -1,15 +1,24 @@
-  import { useState } from 'react'
-  import { useTranslation } from 'react-i18next'
-  import type { JobRequirement } from '../api'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { JobRequirement } from '../api'
 import JobRequirementCard from '../components/JobRequirementCard'
 import CvUpload from '../components/CvUpload'
 
 function SetupPage() {
   const { t } = useTranslation()
   const [selectedJobId, setSelectedJobId] = useState<string>()
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className={`relative py-6 sm:py-10 transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+
+      {/* Background Glow Effect */}
+      <div className="absolute top-10 start-1/2 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-600/15 pointer-events-none" />
 
       {/* Page Header */}
       <div className="mb-10">
@@ -28,7 +37,7 @@ function SetupPage() {
       </div>
 
       {/* Job Requirements */}
-      <section>
+      <section className="relative">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
           <div>
@@ -61,7 +70,7 @@ function SetupPage() {
       <div className="my-12 border-t border-slate-200 dark:border-slate-800" />
 
       {/* CV Upload */}
-      <section>
+      <section className="relative">
         <CvUpload jobRequirementId={selectedJobId} />
       </section>
 

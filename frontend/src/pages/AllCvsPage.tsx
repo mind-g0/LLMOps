@@ -16,12 +16,18 @@ function AllCvsPage() {
   const [reviews, setReviews] = useState<CVReview[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | 'all'>('all')
   const [jobFilter, setJobFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
   const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
 
   const loadReviews = async () => {
     setLoading(true)
@@ -94,7 +100,10 @@ function AllCvsPage() {
   }
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className={`relative py-6 sm:py-10 transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      
+      {/* Background Glow Effect */}
+      <div className="absolute -top-10 start-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-600/10 pointer-events-none" />
 
       {/* Header */}
       <div className="mb-8">
