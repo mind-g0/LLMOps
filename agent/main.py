@@ -82,7 +82,7 @@ def process_one(graph, review: dict) -> None:
         log.warning(f"  [{cv_id}] no job_requirement_id — skipping")
         return
     job = store.get_job(job_id)
-    if not job or not job[0].required_skills:
+    if not job:
         log.warning(f"  [{cv_id}] job '{job_id}' not found in Qdrant — sync it first")
         return
 

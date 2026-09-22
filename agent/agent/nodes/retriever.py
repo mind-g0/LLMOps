@@ -23,9 +23,9 @@ def retriever(state: HRState) -> dict:
         return {"status": "failed", "global_error_log": [rdem], "_status": "error"}
 
     req, chunks = found
-    if not req.required_skills:
+    if not req.required_skills and not chunks:
         rdem = RDEMError(node="retriever", error_type="job_spec_empty",
-                         message=f"Job '{state.job_id}' has no required skills.",
+                         message=f"Job '{state.job_id}' has no required skills and no chunks.",
                          suggestion="Fix the posting and re-ingest.")
         return {"status": "failed", "global_error_log": [rdem], "_status": "error"}
 
