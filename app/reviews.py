@@ -249,6 +249,8 @@ async def update_cv_review(
         review.missing_requirements = data.missing_requirements
     if data.match_score is not None:
         review.match_score = data.match_score
+    if data.report_data is not None:
+        review.report_data = data.report_data
     await session.commit()
     await session.refresh(review)
     return review

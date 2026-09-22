@@ -1,3 +1,20 @@
+"""
+HR CV review agent — watches the backend for new CVs and processes them.
+
+Flow:
+1. Poll GET /api/v1/cv-reviews?status=needs_human_review
+2. For each unprocessed review (rag_summary is null):
+   a. Fetch CV via GET /api/v1/cv-reviews/{id}/file-content
+   b. Look up job from Qdrant using job_requirement_id
+   c. Run the LangGraph analysis pipeline
+   d. PATCH results back to the backend immediately
+3. Sleep and repeat
+
+Usage:
+    python main.py --once        # process all pending CVs and exit
+    python main.py --watch       # run as a daemon, poll every N seconds
+    python main.py --interval 10 # override poll interval (default 30s)
+"""
 import argparse
 import json
 import time
@@ -12,43 +29,85 @@ from agent.logger import get_logger, init_run
 from agent.nodes.formatter import render_markdown
 from agent.state import HRReport, HRState, RDEMError
 from config import settings as S
-
-SUPPORTED = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".docx", ".doc", ".txt", ".md", ".json"}
-
-
-def default_job_id(jobs_dir: str = "data") -> str | None:
-    """job_ingest uses the file stem as job_id, so with exactly one posting we can infer it."""
-    files = [p for p in Path(jobs_dir).glob("*") if p.suffix.lower() in {".md", ".txt"}]
-    return files[0].stem if len(files) == 1 else None
+from rag import store
 
 
-def fetch_cv_from_backend(cv_id: str) -> Path:
-    """Download a CV from the backend API and write to a temp file."""
-    base = S.BACKEND_API_BASE.rstrip("/")
-    url = f"{base}/api/v1/cv-reviews/{cv_id}/file-content"
+def _api_get(path: str) -> dict | list:
+    """GET request to the backend API. Returns parsed JSON."""
+    url = f"{S.BACKEND_API_BASE.rstrip('/')}{path}"
+    with http.urlopen(url, timeout=30) as resp:
+        return json.loads(resp.read().decode())
+
+
+def _api_patch(path: str, body: dict) -> None:
+    """PATCH request to the backend API."""
+    url = f"{S.BACKEND_API_BASE.rstrip('/')}{path}"
+    data = json.dumps(body).encode()
+    req = http.Request(url, data=data, method="PATCH",
+                       headers={"Content-Type": "application/json"})
+    with http.urlopen(req, timeout=30):
+        pass
+
+
+def fetch_cv_bytes(cv_id: str) -> tuple[bytes, str]:
+    """Download CV from backend, return (bytes, filename)."""
+    url = f"{S.BACKEND_API_BASE.rstrip('/')}/api/v1/cv-reviews/{cv_id}/file-content"
     with http.urlopen(url, timeout=60) as resp:
-        data = resp.read()
-    name = f"backend-cv-{cv_id}.pdf"
-    dest = (S.TMP_DIR / name)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(data)
-    return dest
+        return resp.read(), f"cv-{cv_id}"
 
 
-def _triage_status(report: HRReport) -> str:
-    """Map agent triage bucket to backend review status."""
+def process_one(graph, review: dict) -> None:
+    """Analyse a single CV and save results to the backend."""
+    cv_id = review["id"]
+    job_id = review.get("job_requirement_id")
+    cv_name = review.get("cv_name", f"cv-{cv_id}")
+
+    log = get_logger()
+    log.info(f"Processing {cv_name} ({cv_id}) ...")
+
+    # 1. Fetch CV bytes
+    try:
+        data, stem = fetch_cv_bytes(cv_id)
+    except Exception as e:
+        log.error(f"  [{cv_id}] fetch CV failed: {e}")
+        return
+
+    # 2. Write to temp file
+    cv_path = S.TMP_DIR / stem
+    cv_path.parent.mkdir(parents=True, exist_ok=True)
+    cv_path.write_bytes(data)
+
+    # 3. Validate job exists in Qdrant
+    if not job_id:
+        log.warning(f"  [{cv_id}] no job_requirement_id — skipping")
+        return
+    job = store.get_job(job_id)
+    if not job or not job[0].required_skills:
+        log.warning(f"  [{cv_id}] job '{job_id}' not found in Qdrant — sync it first")
+        return
+
+    # 4. Run pipeline
+    state = HRState(cv_path=str(cv_path), job_id=job_id, output_language=None)
+    try:
+        out = graph.invoke(state, config={"configurable": {"thread_id": str(uuid.uuid4())}})
+        report: HRReport = out["report"] if isinstance(out, dict) else out.report
+    except Exception as e:
+        log.error(f"  [{cv_id}] pipeline crashed: {e}")
+        return
+
+    # 5. Map results to backend status
     m = report.match
     if not m:
-        return "needs_human_review"
-    return {"auto_accept": "approved", "auto_reject": "not_approved", "review": "needs_human_review"}.get(
-        m.triage_bucket, "needs_human_review"
-    )
-
-
-def save_to_backend(report: HRReport, cv_id: str, job_id: str) -> None:
-    """PATCH the backend CV review with the agent's analysis results."""
-    base = S.BACKEND_API_BASE.rstrip("/")
-    url = f"{base}/api/v1/cv-reviews/{cv_id}"
+        status = "needs_human_review"
+        rag_summary = ""
+        rejection_reason = None
+        match_score = None
+    else:
+        bucket_map = {"auto_accept": "approved", "auto_reject": "not_approved", "review": "needs_human_review"}
+        status = bucket_map.get(m.triage_bucket, "needs_human_review")
+        rag_summary = m.justification
+        rejection_reason = m.review_reasons[0] if m.review_reasons else None
+        match_score = m.match_score
 
     strengths = []
     missing = []
@@ -58,144 +117,72 @@ def save_to_backend(report: HRReport, cv_id: str, job_id: str) -> None:
                 strengths.append(v.skill)
         missing = report.skill_gap.missing_skills
 
-    body = {
-        "status": _triage_status(report),
-        "rag_summary": report.match.justification if report.match else "",
-        "strengths": strengths,
-        "missing_requirements": missing,
-        "match_score": report.match.match_score if report.match else None,
-        "rejection_reason": report.match.review_reasons[0] if (report.match and report.match.review_reasons) else None,
-    }
-    body = {k: v for k, v in body.items() if v is not None}
-    data = json.dumps(body).encode()
+    # 6. PATCH results back to backend
+    body = {"status": status, "rag_summary": rag_summary or "",
+            "strengths": strengths, "missing_requirements": missing,
+            "report_data": report.model_dump(mode="json")}
+    if match_score is not None:
+        body["match_score"] = match_score
+    if rejection_reason:
+        body["rejection_reason"] = rejection_reason
 
-    req = http.Request(url, data=data, method="PATCH",
-                       headers={"Content-Type": "application/json"})
     try:
-        with http.urlopen(req, timeout=30) as resp:
-            if resp.status >= 400:
-                get_logger().warning(f"save_to_backend returned {resp.status}: {resp.read().decode()[:200]}")
-            else:
-                get_logger().info(f"Saved analysis to backend review {cv_id}")
-    except URLError as e:
-        get_logger().warning(f"save_to_backend failed: {e}")
+        _api_patch(f"/api/v1/cv-reviews/{cv_id}", body)
+        log.info(f"  [{cv_id}] saved: status={status} score={match_score}")
+    except Exception as e:
+        log.error(f"  [{cv_id}] save failed: {e}")
 
-
-def run_one(graph, cv_path: str, job_id: str, lang: str | None = None) -> HRReport:
-    state = HRState(cv_path=cv_path, job_id=job_id, output_language=lang)
-    try:
-        out = graph.invoke(state, config={"configurable": {"thread_id": str(uuid.uuid4())}})
-        report = out["report"] if isinstance(out, dict) else out.report
-    except Exception as e:  # last resort: still return a structured failure
-        get_logger().exception("pipeline crashed")
-        report = HRReport(status="failed", job_id=job_id, errors=[
-            RDEMError(node="graph", error_type=type(e).__name__, message=str(e)[:300])])
-    return report
-
-
-def result_stem(cv_path: str, job_id: str) -> str:
-    return f"{Path(cv_path).stem}__{job_id}"
-
-
-def save_local(report: HRReport, cv_path: str) -> Path:
+    # 7. Save locally too (for debugging)
     S.RESULT_DIR.mkdir(exist_ok=True)
-    stem = result_stem(cv_path, report.job_id)
+    stem = f"{cv_id}__{job_id}"
     (S.RESULT_DIR / f"{stem}.json").write_text(report.model_dump_json(indent=2), encoding="utf-8")
-    md = S.RESULT_DIR / f"{stem}.md"
-    md.write_text(render_markdown(report), encoding="utf-8")
-    return md
+    (S.RESULT_DIR / f"{stem}.md").write_text(render_markdown(report), encoding="utf-8")
 
 
-def is_done(cv_path: Path, job_id: str) -> bool:
-    return (S.RESULT_DIR / f"{result_stem(str(cv_path), job_id)}.json").exists()
-
-
-def is_stable(path: Path, wait: float = 1.0) -> bool:
-    """True if the file size is unchanged over `wait` seconds (i.e. not still being copied)."""
+def pending_reviews() -> list[dict]:
+    """Fetch reviews that need processing (status=needs_human_review, ordered oldest first)."""
     try:
-        size = path.stat().st_size
-        time.sleep(wait)
-        return size == path.stat().st_size and size > 0
-    except OSError:
-        return False
+        result = _api_get("/api/v1/cv-reviews?status=needs_human_review&page_size=50&sort=oldest")
+    except Exception as e:
+        get_logger().warning(f"poll failed: {e}")
+        return []
 
-
-def list_new(folder: Path, job_id: str, seen: set[str], skip_done: bool) -> list[Path]:
-    """CVs not yet attempted in this run. With skip_done, also drop CVs that already have a result."""
-    files = sorted(p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in SUPPORTED)
-    return [p for p in files
-            if str(p) not in seen and not (skip_done and is_done(p, job_id))]
-
-
-def process(graph, f: Path, job_id: str, lang: str | None, save: bool, cv_id: str | None) -> None:
-    report = run_one(graph, str(f), job_id, lang)
-    md = save_local(report, str(f))
-    if save:
-        rid = cv_id or f.stem  # --cv-id uses the real ID; --cv uses the file stem as placeholder
-        save_to_backend(report, rid, job_id)
-    m = report.match
-    print(f"{f.name}: {report.status}"
-          + (f" score={m.match_score} bucket={m.triage_bucket}" if m else "") + f" -> {md}")
+    items = result.get("items", []) if isinstance(result, dict) else result
+    return [r for r in items if not r.get("rag_summary")]
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--cv", help="a single CV file")
-    ap.add_argument("--dir", help="folder of CVs; every supported file is processed")
-    ap.add_argument("--cv-id", help="CV review ID to fetch from the backend API")
-    ap.add_argument("--job-id", help="job to match against (default: the only posting in data/)")
-    ap.add_argument("--lang", choices=["en", "ar"], help="force output language (default: match the CV)")
-    ap.add_argument("--watch", action="store_true", help="after the first pass, keep running and process new files")
-    ap.add_argument("--interval", type=float, default=5.0, help="seconds between folder scans in --watch mode")
-    ap.add_argument("--skip-done", action="store_true",
-                    help="skip CVs that already have a result (default: run all CVs)")
-    ap.add_argument("--save", action="store_true",
-                    help="save analysis results back to the backend API (requires BACKEND_API_BASE)")
+    ap = argparse.ArgumentParser(description="HR CV review agent — processes pending CVs from the backend")
+    ap.add_argument("--once", action="store_true", help="process all pending CVs and exit")
+    ap.add_argument("--watch", action="store_true", help="run as a daemon, polling for new CVs")
+    ap.add_argument("--interval", type=int, default=30, help="seconds between polls in --watch mode")
     a = ap.parse_args()
 
-    if not (a.cv or a.dir or a.cv_id):
-        ap.error("provide --cv, --dir, or --cv-id")
-    if a.watch and not a.dir:
-        ap.error("--watch requires --dir")
-    if a.save and not S.BACKEND_API_BASE:
-        ap.error("--save requires BACKEND_API_BASE in the environment")
-    a.job_id = a.job_id or default_job_id()
-    if not a.job_id:
-        ap.error("--job-id is required (data/ has zero or several postings)")
+    if not (a.once or a.watch):
+        ap.error("provide --once or --watch")
+    if not S.BACKEND_API_BASE:
+        ap.error("BACKEND_API_BASE is required")
 
-    init_run()
+    init_run("agent_watch")
     init_dspy()
     graph = build_graph()
+    log = get_logger()
 
-    if a.cv:
-        process(graph, Path(a.cv), a.job_id, a.lang, a.save, None)
-        return
+    log.info(f"Agent started (BACKEND_API_BASE={S.BACKEND_API_BASE})")
+    log.info(f"Mode: {'watch' if a.watch else 'once'}")
 
-    if a.cv_id:
-        cv_path = fetch_cv_from_backend(a.cv_id)
-        process(graph, cv_path, a.job_id, a.lang, a.save, a.cv_id)
-        return
+    while True:
+        reviews = pending_reviews()
+        if not reviews:
+            log.info("No pending CVs found.")
+        else:
+            log.info(f"Found {len(reviews)} pending CV(s).")
+            for review in reviews:
+                process_one(graph, review)
 
-    folder = Path(a.dir)
-    if not folder.is_dir():
-        ap.error(f"--dir '{folder}' is not a folder")
-
-    seen: set[str] = set()
-    try:
-        while True:
-            new = list_new(folder, a.job_id, seen, a.skip_done)
-            for f in new:
-                if a.watch and not is_stable(f):
-                    continue
-                seen.add(str(f))
-                process(graph, f, a.job_id, a.lang, a.save, None)
-            if not a.watch:
-                if not new:
-                    print(f"No CVs to process in {folder} for job '{a.job_id}'.")
-                break
-            time.sleep(a.interval)
-    except KeyboardInterrupt:
-        print("Stopped.")
+        if not a.watch:
+            break
+        time.sleep(a.interval)
 
 
 if __name__ == "__main__":

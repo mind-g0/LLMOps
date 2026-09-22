@@ -42,6 +42,7 @@ class CVReview(Base):
         JSON, default=list, nullable=False
     )
     match_score: Mapped[float | None] = mapped_column(nullable=True)
+    report_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

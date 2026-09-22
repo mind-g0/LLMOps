@@ -21,15 +21,18 @@ router = APIRouter(prefix="/api/v1/job-requirements", tags=["job-requirements"])
 
 def _ingest_to_qdrant(job_id: str) -> None:
     """Non-blocking fire-and-forget: sync the job into the agent's Qdrant store."""
+    import logging
     try:
         sync_script = Path(__file__).resolve().parent.parent / "agent" / "rag" / "sync_job.py"
-        if sync_script.exists():
-            subprocess.Popen(
-                [sys.executable, str(sync_script), job_id],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            )
-    except Exception:
-        pass
+        if not sync_script.exists():
+            logging.warning(f"[ingest] sync_job.py not found at {sync_script}")
+            return
+        subprocess.Popen(
+            [sys.executable, str(sync_script), job_id],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    except Exception as e:
+        logging.error(f"[ingest] failed to trigger Qdrant sync for job {job_id}: {e}")
 
 
 @router.get("", response_model=list[JobRequirementResponse])

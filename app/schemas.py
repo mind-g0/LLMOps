@@ -75,6 +75,7 @@ class CVReviewUpdate(BaseModel):
     strengths: list[str] | None = None
     missing_requirements: list[str] | None = None
     match_score: float | None = None
+    report_data: dict | None = None
 
 
 class CVReviewResponse(BaseModel):
@@ -93,6 +94,7 @@ class CVReviewResponse(BaseModel):
     strengths: list[str]
     missing_requirements: list[str]
     match_score: float | None
+    report_data: dict | None
     created_at: datetime
 
 
