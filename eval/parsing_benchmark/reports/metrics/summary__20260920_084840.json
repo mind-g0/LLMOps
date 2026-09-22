@@ -22,9 +22,11 @@
     "diagnosis": "usable",
     "field_n_scored": 200,
     "field_n_docs": 200,
-    "field_skills_f1_micro": 0.0006493517238749008,
-    "field_skills_f1_ci95_lo": 0.0002,
-    "field_skills_f1_ci95_hi": 0.0012
+    "field_skills_f1_micro": 0.6188844715857014,
+    "field_skills_f1_ci95_lo": 0.5749,
+    "field_skills_f1_ci95_hi": 0.6656,
+    "field_education_field_accuracy": 0.9636390096409881,
+    "field_experience_field_accuracy": 0.9471964995102556
   },
   {
     "pipeline": "docling_simple",
@@ -114,9 +116,11 @@
     "diagnosis": "mixed",
     "field_n_scored": 200,
     "field_n_docs": 200,
-    "field_skills_f1_micro": 0.0006347766179570102,
-    "field_skills_f1_ci95_lo": 0.0002,
-    "field_skills_f1_ci95_hi": 0.0012
+    "field_skills_f1_micro": 0.624119807525452,
+    "field_skills_f1_ci95_lo": 0.5842,
+    "field_skills_f1_ci95_hi": 0.6651,
+    "field_education_field_accuracy": 0.9658839420604127,
+    "field_experience_field_accuracy": 0.9485414744843684
   },
   {
     "pipeline": "qwen3_5_4b",

@@ -1,6 +1,13 @@
 [
   {
     "pipeline": "qianfan_ocr",
+    "dataset": "misraj_dococr",
+    "split": "all",
+    "n_scored": 0,
+    "n_docs": 0
+  },
+  {
+    "pipeline": "qianfan_ocr",
     "dataset": "resume_dataset_hf",
     "split": "all",
     "n_scored": 199,
@@ -22,9 +29,11 @@
     "diagnosis": "usable",
     "field_n_scored": 200,
     "field_n_docs": 200,
-    "field_skills_f1_micro": 0.00043138340981146165,
-    "field_skills_f1_ci95_lo": 0.0001,
-    "field_skills_f1_ci95_hi": 0.0009
+    "field_skills_f1_micro": 0.6292285848603907,
+    "field_skills_f1_ci95_lo": 0.5894,
+    "field_skills_f1_ci95_hi": 0.6676,
+    "field_education_field_accuracy": 0.9714258732102965,
+    "field_experience_field_accuracy": 0.9510043200548501
   },
   {
     "pipeline": "qianfan_ocr",

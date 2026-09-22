@@ -22,9 +22,11 @@
     "diagnosis": "mixed",
     "field_n_scored": 200,
     "field_n_docs": 200,
-    "field_skills_f1_micro": 0.0006337481449615008,
-    "field_skills_f1_ci95_lo": 0.0002,
-    "field_skills_f1_ci95_hi": 0.0012
+    "field_skills_f1_micro": 0.6340874817852303,
+    "field_skills_f1_ci95_lo": 0.5927,
+    "field_skills_f1_ci95_hi": 0.6764,
+    "field_education_field_accuracy": 0.9686711385810058,
+    "field_experience_field_accuracy": 0.947842187468128
   },
   {
     "pipeline": "docling",

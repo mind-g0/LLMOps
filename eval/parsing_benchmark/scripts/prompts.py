@@ -57,14 +57,18 @@ PROMPTS = {
     "glm_ocr":       {"native": GLM_NATIVE_PROMPT,     "control": CONTROL_PROMPT},
     "qwen3_vl":      {"control": CONTROL_PROMPT},  
     "qwen3_5_4b":    {"control": CONTROL_PROMPT},
+    "claude_haiku":  {"control": CONTROL_PROMPT},  
 }
  
-# Models allowed to use the task-shaped ("resume" / "arabic_doc") variant as
+# Models allowed to use the task-shaped ("resume") variant as
 # an alternative to their bare native prompt, for the native-vs-task A/B.
-TASK_VARIANT_ALLOWED = {"qianfan_ocr", "glm_ocr", "qwen3_vl", "qwen3_5_4b"}
-
-
-NO_FIXED_NATIVE_PROMPT = {"qwen3_vl", "qwen3_5_4b"}
+TASK_VARIANT_ALLOWED = {"qianfan_ocr", "glm_ocr", "qwen3_vl", "qwen3_5_4b", "claude_haiku"}
+ 
+# General instruction-following models with no single trained "native"
+# prompt — their "native" request always routes to the task-shaped prompt.
+# Add a model here (not a new if-check) when it's this kind, not an
+# OCR-specialized fine-tune with its own canonical instruction.
+NO_FIXED_NATIVE_PROMPT = {"qwen3_vl", "qwen3_5_4b", "claude_haiku"}
  
  
 def get_prompt(pipeline: str, variant: str, dataset: str) -> str:

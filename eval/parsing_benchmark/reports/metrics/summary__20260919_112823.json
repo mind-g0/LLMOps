@@ -1,6 +1,13 @@
 [
   {
     "pipeline": "qwen3_vl",
+    "dataset": "misraj_dococr",
+    "split": "all",
+    "n_scored": 0,
+    "n_docs": 0
+  },
+  {
+    "pipeline": "qwen3_vl",
     "dataset": "resume_dataset_hf",
     "split": "all",
     "n_scored": 199,
@@ -22,9 +29,11 @@
     "diagnosis": "usable",
     "field_n_scored": 200,
     "field_n_docs": 200,
-    "field_skills_f1_micro": 0.0007369152387844759,
-    "field_skills_f1_ci95_lo": 0.0002,
-    "field_skills_f1_ci95_hi": 0.0014
+    "field_skills_f1_micro": 0.6331489477878061,
+    "field_skills_f1_ci95_lo": 0.5912,
+    "field_skills_f1_ci95_hi": 0.6743,
+    "field_education_field_accuracy": 0.9658128449390965,
+    "field_experience_field_accuracy": 0.9485870278107803
   },
   {
     "pipeline": "qwen3_vl",
