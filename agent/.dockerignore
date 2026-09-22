@@ -1,0 +1,13 @@
+# Agent build context
+.env
+__pycache__/
+*.pyc
+tmp/
+logs/
+result/
+vectorstore/
+tests/
+digram_hrai.PNG
+rag.md
+README.md
+.gitignore

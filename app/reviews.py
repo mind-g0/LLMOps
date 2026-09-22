@@ -241,6 +241,16 @@ async def update_cv_review(
     review.status = data.status
     review.approved = status_to_approved(data.status)
     review.rejection_reason = data.rejection_reason
+    if data.rag_summary is not None:
+        review.rag_summary = data.rag_summary
+    if data.strengths is not None:
+        review.strengths = data.strengths
+    if data.missing_requirements is not None:
+        review.missing_requirements = data.missing_requirements
+    if data.match_score is not None:
+        review.match_score = data.match_score
+    if data.report_data is not None:
+        review.report_data = data.report_data
     await session.commit()
     await session.refresh(review)
     return review

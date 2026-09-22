@@ -28,6 +28,29 @@ class JobRequirementCreate(BaseModel):
     requirements: list[str] = Field(default_factory=list)
 
 
+class JobRequirementSpec(BaseModel):
+    """Structured job spec for the agent — maps backend fields to what the agent's
+    JobRequirement model expects."""
+
+    job_id: str
+    name: str
+    title: str
+    description: str
+    required_skills: list[str]
+    created_at: datetime
+
+    @classmethod
+    def from_orm_job(cls, job: Any) -> "JobRequirementSpec":
+        return cls(
+            job_id=str(job.id),
+            name=job.name,
+            title=job.title,
+            description=job.description,
+            required_skills=job.requirements or [],
+            created_at=job.created_at,
+        )
+
+
 class JobRequirementUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     title: str | None = Field(default=None, min_length=1, max_length=255)
@@ -48,6 +71,11 @@ class JobRequirementResponse(JobRequirementCreate):
 class CVReviewUpdate(BaseModel):
     status: ReviewStatus
     rejection_reason: str | None = None
+    rag_summary: str | None = None
+    strengths: list[str] | None = None
+    missing_requirements: list[str] | None = None
+    match_score: float | None = None
+    report_data: dict | None = None
 
 
 class CVReviewResponse(BaseModel):
@@ -66,6 +94,7 @@ class CVReviewResponse(BaseModel):
     strengths: list[str]
     missing_requirements: list[str]
     match_score: float | None
+    report_data: dict | None
     created_at: datetime
 
 

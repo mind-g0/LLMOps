@@ -223,6 +223,38 @@ function CvDetail({ review }: CvDetailProps) {
           </section>
         )}
 
+        {/* Full Report Data */}
+        {review.reportData?.match && (
+          <section>
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
+              Match Breakdown
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {Object.entries(((review.reportData.match as any).breakdown as Record<string, number>) || {}).map(([key, val]) => (
+                <div key={key} className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{key}</p>
+                  <p className="mt-1 text-lg font-bold text-slate-700 dark:text-slate-200">{typeof val === 'number' ? `${val.toFixed(1)}%` : String(val)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {review.reportData && (review.reportData as any).recommendations && ((review.reportData as any).recommendations as any[]).length > 0 && (
+          <section>
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">Recommendations</h3>
+            <div className="space-y-3">
+              {((review.reportData as any).recommendations as any[]).slice(0, 5).map((rec: any, i: number) => (
+                <div key={i} className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{rec.title || rec.missing_skill}</p>
+                  {rec.url && <a href={rec.url} target="_blank" rel="noreferrer" className="mt-1 block text-xs text-blue-600 underline">{rec.url}</a>}
+                  {rec.reason && <p className="mt-1 text-xs text-slate-500">{rec.reason}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Metadata */}
         <section className="border-t border-slate-200 pt-6 dark:border-slate-800">
           <div className="grid gap-4 sm:grid-cols-2">

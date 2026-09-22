@@ -36,6 +36,7 @@ export interface CVReview {
   match_score: number | null
   createdAt: string
   fileUrl?: string
+  reportData?: Record<string, unknown>
 }
 
 export interface PaginatedReviews {
@@ -64,6 +65,7 @@ function mapReview(review: any): CVReview {
     match_score: review.match_score,
     createdAt: review.created_at,
     fileUrl: review.file_url,
+    reportData: review.report_data,
   }
 }
 
