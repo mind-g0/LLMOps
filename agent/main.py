@@ -19,9 +19,12 @@ import argparse
 import json
 import time
 import uuid
+from collections import defaultdict
 from pathlib import Path
 from urllib import request as http
 from urllib.error import URLError
+
+import numpy as np  # must load before dspy to avoid circular import
 
 from agent.dspy_setup import init_dspy
 from agent.graph import build_graph
@@ -30,6 +33,10 @@ from agent.nodes.formatter import render_markdown
 from agent.state import HRReport, HRState, JobChunk, JobRequirement, RDEMError
 from config import settings as S
 from rag import store
+
+_MAX_RETRIES = 3
+
+# ── Helpers ────────────────────────────────────────────────────────────────
 
 
 def _api_get(path: str) -> dict | list:
@@ -56,6 +63,38 @@ def fetch_cv_bytes(cv_id: str) -> tuple[bytes, str]:
         return resp.read(), f"cv-{cv_id}"
 
 
+def _sync_job(job_id: str) -> bool:
+    """Fetch one job spec from the backend and upsert it into Qdrant.
+    Returns True on success, False on any error.
+    """
+    log = get_logger()
+    try:
+        spec = _api_get(f"/api/v1/job-requirements/{job_id}/spec")
+    except Exception as e:
+        log.warning(f"sync_job({job_id}): cannot fetch spec: {e}")
+        return False
+
+    req = JobRequirement(
+        job_id=spec["job_id"],
+        job_version="backend",
+        title=spec.get("title", ""),
+        required_skills=spec.get("required_skills", []),
+        nice_to_have_skills=[],
+        min_experience_years=0.0,
+        education_requirement="",
+        language_requirements=[],
+        responsibilities_summary=spec.get("description", "")[:500],
+        language="en",
+    )
+    desc = spec.get("description", "")
+    chunks = [JobChunk(section="description", text=desc[:900])] if desc else []
+    store.upsert_job(req, chunks)
+    return True
+
+
+# ── Core processing ────────────────────────────────────────────────────────
+
+
 def process_one(graph, review: dict) -> None:
     """Analyse a single CV and save results to the backend."""
     cv_id = review["id"]
@@ -77,13 +116,17 @@ def process_one(graph, review: dict) -> None:
     cv_path.parent.mkdir(parents=True, exist_ok=True)
     cv_path.write_bytes(data)
 
-    # 3. Validate job exists in Qdrant
+    # 3. Validate job exists in Qdrant — sync on demand if missing
     if not job_id:
         log.warning(f"  [{cv_id}] no job_requirement_id — skipping")
         return
     job = store.get_job(job_id)
     if not job:
-        log.warning(f"  [{cv_id}] job '{job_id}' not found in Qdrant — sync it first")
+        log.info(f"  [{cv_id}] job '{job_id}' not in Qdrant — fetching spec on demand")
+        if _sync_job(job_id):
+            job = store.get_job(job_id)
+    if not job:
+        log.warning(f"  [{cv_id}] job '{job_id}' could not be synced — skipping")
         return
 
     # 4. Run pipeline
@@ -169,30 +212,11 @@ def sync_all_jobs() -> None:
 
     count = 0
     for job in jobs:
-        job_id = str(job.get("id", ""))
-        if not job_id:
+        jid = str(job.get("id", ""))
+        if not jid:
             continue
-        try:
-            spec = _api_get(f"/api/v1/job-requirements/{job_id}/spec")
-        except Exception as e:
-            log.warning(f"sync_all_jobs: cannot fetch spec for {job_id}: {e}")
-            continue
-        req = JobRequirement(
-            job_id=spec["job_id"],
-            job_version="backend",
-            title=spec.get("title", ""),
-            required_skills=spec.get("required_skills", []),
-            nice_to_have_skills=[],
-            min_experience_years=0.0,
-            education_requirement="",
-            language_requirements=[],
-            responsibilities_summary=spec.get("description", "")[:500],
-            language="en",
-        )
-        desc = spec.get("description", "")
-        chunks = [JobChunk(section="description", text=desc[:900])] if desc else []
-        store.upsert_job(req, chunks)
-        count += 1
+        if _sync_job(jid):
+            count += 1
     log.info(f"Synced {count} job(s) into Qdrant.")
 
 
@@ -216,9 +240,9 @@ def main() -> None:
     log.info(f"Agent started (BACKEND_API_BASE={S.BACKEND_API_BASE})")
     log.info(f"Mode: {'watch' if a.watch else 'once'}")
 
-    sync_all_jobs()
-
     while True:
+        sync_all_jobs()
+
         reviews = pending_reviews()
         if not reviews:
             log.info("No pending CVs found.")
