@@ -37,8 +37,8 @@ COPY rag ./rag
 COPY utils ./utils
 COPY main.py .
 
-ENV SENTENCE_TRANSFORMERS_HOME=/models/huggingface \
-    HF_HOME=/models/huggingface \
+ENV SENTENCE_TRANSFORMERS_HOME=/data/hf_cache \
+    HF_HOME=/data/hf_cache \
     HOME=/home/agent \
     DSPY_CACHE_DIR=/data/dspy_cache \
     QDRANT_PATH=/data/qdrant \
@@ -49,7 +49,7 @@ ENV SENTENCE_TRANSFORMERS_HOME=/models/huggingface \
     PYTHONUNBUFFERED=1
 
 RUN groupadd -r agent && useradd --no-log-init -r -g agent agent && \
-    mkdir -p /data/tmp /data/logs /data/result /data/qdrant /data/dspy_cache /models/huggingface /home/agent && \
+    mkdir -p /data/tmp /data/logs /data/result /data/qdrant /data/dspy_cache /data/hf_cache /models/huggingface /home/agent && \
     chown -R agent:agent /app /data /models /home/agent
 
 USER agent

@@ -72,8 +72,8 @@ def process_one(graph, review: dict) -> None:
         log.error(f"  [{cv_id}] fetch CV failed: {e}")
         return
 
-    # 2. Write to temp file
-    cv_path = S.TMP_DIR / stem
+    # 2. Write to temp file preserving original extension
+    cv_path = S.TMP_DIR / cv_id / cv_name
     cv_path.parent.mkdir(parents=True, exist_ok=True)
     cv_path.write_bytes(data)
 
@@ -148,7 +148,10 @@ def pending_reviews() -> list[dict]:
         return []
 
     items = result.get("items", []) if isinstance(result, dict) else result
-    return [r for r in items if not r.get("rag_summary")]
+    return [
+        r for r in items
+        if not r.get("rag_summary") and r.get("job_requirement_id")
+    ]
 
 
 def sync_all_jobs() -> None:
