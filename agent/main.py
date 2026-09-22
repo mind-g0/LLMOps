@@ -27,7 +27,7 @@ from agent.dspy_setup import init_dspy
 from agent.graph import build_graph
 from agent.logger import get_logger, init_run
 from agent.nodes.formatter import render_markdown
-from agent.state import HRReport, HRState, RDEMError
+from agent.state import HRReport, HRState, JobChunk, JobRequirement, RDEMError
 from config import settings as S
 from rag import store
 
@@ -151,6 +151,48 @@ def pending_reviews() -> list[dict]:
     return [r for r in items if not r.get("rag_summary")]
 
 
+def sync_all_jobs() -> None:
+    """Auto-sync all active backend jobs into Qdrant — no manual sync needed."""
+    log = get_logger()
+    try:
+        jobs = _api_get("/api/v1/job-requirements")
+    except Exception as e:
+        log.warning(f"sync_all_jobs: cannot fetch jobs from backend: {e}")
+        return
+
+    if not jobs:
+        log.info("No active jobs to sync.")
+        return
+
+    count = 0
+    for job in jobs:
+        job_id = str(job.get("id", ""))
+        if not job_id:
+            continue
+        try:
+            spec = _api_get(f"/api/v1/job-requirements/{job_id}/spec")
+        except Exception as e:
+            log.warning(f"sync_all_jobs: cannot fetch spec for {job_id}: {e}")
+            continue
+        req = JobRequirement(
+            job_id=spec["job_id"],
+            job_version="backend",
+            title=spec.get("title", ""),
+            required_skills=spec.get("required_skills", []),
+            nice_to_have_skills=[],
+            min_experience_years=0.0,
+            education_requirement="",
+            language_requirements=[],
+            responsibilities_summary=spec.get("description", "")[:500],
+            language="en",
+        )
+        desc = spec.get("description", "")
+        chunks = [JobChunk(section="description", text=desc[:900])] if desc else []
+        store.upsert_job(req, chunks)
+        count += 1
+    log.info(f"Synced {count} job(s) into Qdrant.")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="HR CV review agent — processes pending CVs from the backend")
     ap.add_argument("--once", action="store_true", help="process all pending CVs and exit")
@@ -170,6 +212,8 @@ def main() -> None:
 
     log.info(f"Agent started (BACKEND_API_BASE={S.BACKEND_API_BASE})")
     log.info(f"Mode: {'watch' if a.watch else 'once'}")
+
+    sync_all_jobs()
 
     while True:
         reviews = pending_reviews()
