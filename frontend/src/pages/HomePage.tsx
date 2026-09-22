@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -12,23 +13,31 @@ const workflowSteps = ['step1', 'step2', 'step3']
 
 function HomePage() {
   const { t } = useTranslation()
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className={`py-6 sm:py-10 transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white px-6 py-20 text-center shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 sm:px-10 sm:py-24 lg:px-16 lg:py-28">
+      <section className={`relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white px-6 py-20 text-center shadow-sm transition-all duration-1000 ease-out dark:border-slate-800 dark:bg-slate-900 sm:px-10 sm:py-24 lg:px-16 lg:py-28 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
 
-        <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl" />
-
-        <div className="pointer-events-none absolute bottom-0 right-0 h-64 w-64 translate-x-1/3 translate-y-1/3 rounded-full bg-cyan-500/10 blur-3xl" />
+        {/* Distributed & Lighter Ambient Glows Everywhere */}
+        <div className="pointer-events-none absolute -left-20 -top-20 h-96 w-96 rounded-full bg-sky-300/20 blur-[130px] dark:bg-sky-500/15" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-300/20 blur-[130px] dark:bg-blue-500/15" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[30rem] w-[30rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/20 blur-[150px] dark:bg-cyan-400/10" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-indigo-300/20 blur-[130px] dark:bg-indigo-600/15" />
+        <div className="pointer-events-none absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-blue-400/20 blur-[130px] dark:bg-blue-600/15" />
 
         <div className="relative z-10 mx-auto max-w-4xl">
 
           {/* Badge */}
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
             <span className="h-2 w-2 rounded-full bg-blue-500" />
-
             {t('home.badge')}
           </div>
 
@@ -78,7 +87,7 @@ function HomePage() {
       </section>
 
       {/* Workflow */}
-      <section className="mt-20">
+      <section className={`mt-20 transition-all duration-1000 delay-200 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
         <div className="mb-10 text-center">
 
@@ -123,7 +132,7 @@ function HomePage() {
       </section>
 
       {/* Team */}
-      <section className="mt-20">
+      <section className={`mt-20 transition-all duration-1000 delay-300 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
         <div className="mb-10 text-center">
 
