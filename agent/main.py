@@ -240,20 +240,70 @@ def main() -> None:
     log.info(f"Agent started (BACKEND_API_BASE={S.BACKEND_API_BASE})")
     log.info(f"Mode: {'watch' if a.watch else 'once'}")
 
+    import os
+    import redis
+
+    redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+    try:
+        redis_client = redis.Redis(host=redis_host, port=6379, db=0, decode_responses=True)
+        redis_client.ping()
+    except Exception as e:
+        log.error(f"Failed to connect to Redis at {redis_host}: {e}")
+        redis_client = None
+
     while True:
         sync_all_jobs()
 
-        reviews = pending_reviews()
-        if not reviews:
-            log.info("No pending CVs found.")
-        else:
-            log.info(f"Found {len(reviews)} pending CV(s).")
+        if not a.watch:
+            reviews = pending_reviews()
+            if not reviews:
+                log.info("No pending CVs found.")
+            else:
+                log.info(f"Found {len(reviews)} pending CV(s).")
+                for review in reviews:
+                    process_one(graph, review)
+            break
+
+        if not redis_client:
+            reviews = pending_reviews()
             for review in reviews:
                 process_one(graph, review)
+            time.sleep(a.interval)
+            continue
 
-        if not a.watch:
-            break
-        time.sleep(a.interval)
+        if not redis_client:
+            reviews = pending_reviews()
+            for review in reviews:
+                process_one(graph, review)
+            time.sleep(a.interval)
+            continue
+
+        import concurrent.futures
+
+        def worker_loop():
+            while True:
+                try:
+                    result = redis_client.blpop("cv_queue", timeout=a.interval)
+                    if result:
+                        _, cv_id = result
+                        log.info(f"[Thread] Received CV {cv_id} from queue.")
+                        try:
+                            review_data = _api_get(f"/api/v1/cv-reviews/{cv_id}")
+                            process_one(graph, review_data)
+                        except Exception as e:
+                            log.error(f"Failed to fetch or process {cv_id}: {e}")
+                    else:
+                        # Timeout reached, break to let the main loop sync jobs
+                        break
+                except Exception as e:
+                    log.error(f"Redis queue error: {e}")
+                    time.sleep(a.interval)
+                    break
+
+        log.info("Spawning 10 worker threads to listen on Redis 'cv_queue'...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(worker_loop) for _ in range(10)]
+            concurrent.futures.wait(futures)
 
 
 if __name__ == "__main__":

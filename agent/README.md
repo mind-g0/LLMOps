@@ -50,3 +50,25 @@ does not make final hiring assignments.
 
 `DOCLING_MODE=simple|tables|full` (default simple = no OCR, so scanned CVs go to the VLM). Choose it from your
 Docling benchmark (`full` vs `simple`), then compare `tables` if CVs have skill tables or multi-column layouts.
+
+## Event-Driven Deployment (Redis Queue)
+The agent now supports a highly scalable event-driven architecture using Redis. Instead of polling the backend sequentially, the agent spawns a `ThreadPoolExecutor` (10 parallel workers) and blocks securely on a Redis list (`cv_queue`), consuming 0% CPU until a CV is uploaded.
+
+### Build the Docker Image
+Make sure to build using the `agent/` folder context:
+```bash
+sudo docker build --no-cache -t agent ./agent
+```
+
+### Run the Agent Daemon
+Use the `--network host` flag to communicate seamlessly with your local vLLM and Redis ports. Make sure your `.env` specifies `REDIS_HOST=172.17.0.1`.
+```bash
+sudo docker run -d --name llmops-agent \
+  --restart unless-stopped \
+  --network host \
+  -v /home/nassir/models/hf/:/models/huggingface \
+  --env-file .env \
+  agent --watch
+```
+
+**Horizontal Scaling:** To process even more CVs simultaneously, simply run the above command multiple times with a new container name (e.g., `--name llmops-agent-2`). Redis acts as a perfect atomic queue and safely deals CVs out evenly across all your running agent containers!
