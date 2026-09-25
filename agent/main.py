@@ -29,7 +29,7 @@ import numpy as np  # must load before dspy to avoid circular import
 from agent.dspy_setup import init_dspy
 from agent.graph import build_graph
 from agent.logger import get_logger, init_run
-from agent.nodes.formatter import render_markdown
+from agent.nodes.formatter import humanize_code, render_markdown
 from agent.state import HRReport, HRState, JobChunk, JobRequirement, RDEMError
 from config import settings as S
 from rag import store
@@ -95,6 +95,14 @@ def _sync_job(job_id: str) -> bool:
 # ── Core processing ────────────────────────────────────────────────────────
 
 
+def run_one(graph, cv_path: str, job_id: str, output_language: str | None = None) -> HRReport:
+    """Run the full pipeline for one CV against one job and return the HRReport.
+    Used by tests and CLI debugging; the backend-polling flow uses process_one() below."""
+    state = HRState(cv_path=cv_path, job_id=job_id, output_language=output_language)
+    out = graph.invoke(state, config={"configurable": {"thread_id": str(uuid.uuid4())}})
+    return out["report"] if isinstance(out, dict) else out.report
+
+
 def process_one(graph, review: dict) -> None:
     """Analyse a single CV and save results to the backend."""
     cv_id = review["id"]
@@ -142,14 +150,16 @@ def process_one(graph, review: dict) -> None:
     m = report.match
     if not m:
         status = "needs_human_review"
-        rag_summary = ""
+        rag_summary = report.errors[-1].message if report.errors else ""
         rejection_reason = None
         match_score = None
     else:
         bucket_map = {"auto_accept": "approved", "auto_reject": "not_approved", "review": "needs_human_review"}
         status = bucket_map.get(m.triage_bucket, "needs_human_review")
         rag_summary = m.justification
-        rejection_reason = m.review_reasons[0] if m.review_reasons else None
+        rejection_reason = "; ".join(
+            humanize_code(report.target_language, c) for c in m.review_reasons
+        ) or None
         match_score = m.match_score
 
     strengths = []

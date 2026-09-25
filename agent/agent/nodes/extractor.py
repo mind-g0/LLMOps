@@ -1,5 +1,9 @@
-"""Extraction agent. Cheap path first: text layer -> one guided call. Escalates to the VLM on page
-images when the validator rejects the text path (the retry is an *escalation*, not a re-roll).
+"""Extraction agent. Vision-first whenever page images exist: the VLM reads the actual page, with
+Docling's text (when usable) passed alongside as a hint, so it can catch anything the text layer
+missed (tables, layout-dependent info, icons/badges, etc.). Text-only is the fallback only when
+there are no page images at all (txt/md/json, or a docx that couldn't be rendered because
+LibreOffice isn't installed). A validation failure still gets one retry (same modality, a re-roll,
+not an escalation, since vision is already the default).
 Values are extracted in the CV's ORIGINAL language: no translation step, so no translation errors."""
 import base64
 from pathlib import Path
@@ -59,12 +63,11 @@ def build_profile(ext: CandidateExtraction, state: HRState, vision: bool) -> Can
 @log_node
 def extractor(state: HRState) -> dict:
     attempt = state.extract_attempts + 1
-    vision = state.use_vision or not state.text_ok
-    if vision and not state.page_paths:  # nothing to look at (e.g. txt/docx without soffice)
-        vision = False
+    # Always prefer vision when we have page images: the VLM sees the real layout, Docling's text
+    # (if usable) just rides along as a hint. Falls back to text-only only when there is nothing to
+    # look at (no page images at all).
+    vision = bool(state.page_paths)
     text = state.text_layer if (state.text_ok or not vision) else ""
-    if vision and state.text_ok:
-        text = state.text_layer  # usable text is passed as a hint alongside the images
 
     get_logger().info(f"  [extractor] attempt={attempt} mode={'vision' if vision else 'text'}")
     try:

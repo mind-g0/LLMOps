@@ -32,7 +32,6 @@ export interface CVReview {
   ragSummary: string
   strengths: string[]
   missingRequirements: string[]
-  matchingRequirements: string[]
   match_score: number | null
   createdAt: string
   fileUrl?: string
@@ -61,7 +60,6 @@ function mapReview(review: any): CVReview {
     ragSummary: review.rag_summary || '',
     strengths: review.strengths || [],
     missingRequirements: review.missing_requirements || [],
-    matchingRequirements: review.strengths || [],
     match_score: review.match_score,
     createdAt: review.created_at,
     fileUrl: review.file_url,

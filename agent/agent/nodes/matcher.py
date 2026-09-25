@@ -64,6 +64,8 @@ def matcher(state: HRState) -> dict:
     p, job, gap, lang = state.profile, state.job, state.skill_gap, state.target_language
     req = job.requirement
     extra: list[Flag] = []
+    if not gap.verdicts:
+        extra.append(Flag(code="job_has_no_required_skills"))
 
     try:
         rel, edu, proj = _call_assess(req.title, job_summary(job), candidate_brief(p))

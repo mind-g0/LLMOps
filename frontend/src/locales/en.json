@@ -117,14 +117,11 @@
     "cvReview": "CV Review",
     "evaluatedFor": "Evaluated for",
 
-    "ragSummary": "RAG Summary",
-    "noRagSummary": "No RAG summary available.",
+    "ragSummary": "Summary",
+    "noRagSummary": "No summary available.",
 
     "strengths": "Strengths",
     "noStrengths": "No strengths available.",
-
-    "matchingRequirements": "Matching Requirements",
-    "noMatchingRequirements": "No matching requirements available.",
 
     "missingRequirements": "Missing Requirements",
     "noMissingRequirements": "No missing requirements.",

@@ -117,14 +117,11 @@
     "cvReview": "مراجعة السيرة الذاتية",
     "evaluatedFor": "تم التقييم لوظيفة",
 
-    "ragSummary": "ملخص RAG",
-    "noRagSummary": "لا يتوفر ملخص RAG.",
+    "ragSummary": "الملخص",
+    "noRagSummary": "لا يتوفر ملخص.",
 
     "strengths": "نقاط القوة",
     "noStrengths": "لا توجد نقاط قوة متاحة.",
-
-    "matchingRequirements": "المتطلبات المتطابقة",
-    "noMatchingRequirements": "لا توجد متطلبات متطابقة.",
 
     "missingRequirements": "المتطلبات غير المتوفرة",
     "noMissingRequirements": "لا توجد متطلبات مفقودة.",

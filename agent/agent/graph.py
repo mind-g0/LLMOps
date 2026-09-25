@@ -1,20 +1,21 @@
 """Graph wiring. Routing is done by small pure functions (no orchestrator LLM, no orchestrator hop).
 
-  START -> retriever -> ingest -> extractor -> validator -+-> extractor   (escalate to vision)
-                                                          +-> gap -> matcher -+-> recommender -> formatter
-                                                          |                   +-> formatter
-                                                          +-> formatter (failed)
+  START -> retriever -> converter -> parser -> extractor -> validator -+-> extractor   (escalate to vision)
+                                                                       +-> gap_analyzer -> matcher -+-> recommender -> formatter
+                                                                       |                             +-> formatter
+                                                                       +-> formatter (failed)
 Any failure short-circuits to the formatter, which always emits a structured report.
 """
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import RetryPolicy
 
+from agent.nodes.converter import converter
 from agent.nodes.extractor import extractor
 from agent.nodes.formatter import formatter
 from agent.nodes.gap_agent import gap_agent
-from agent.nodes.ingest import ingest
 from agent.nodes.matcher import matcher
+from agent.nodes.parser import parser
 from agent.nodes.recommender import recommender
 from agent.nodes.retriever import retriever
 from agent.nodes.validator import validator
@@ -41,7 +42,7 @@ def _failed_or(next_node: str):
 def after_validator(s: HRState) -> str:
     if s.status == "failed":
         return "formatter"
-    return "extractor" if s.retry_extract else "gap"
+    return "extractor" if s.retry_extract else "gap_analyzer"
 
 
 def after_matcher(s: HRState) -> str:
@@ -52,20 +53,22 @@ def after_matcher(s: HRState) -> str:
 def build_graph():
     b = StateGraph(HRState)
     b.add_node("retriever", retriever, retry_policy=_retry)
-    b.add_node("ingest", ingest)
+    b.add_node("converter", converter)
+    b.add_node("parser", parser)
     b.add_node("extractor", extractor)
     b.add_node("validator", validator)
-    b.add_node("gap", gap_agent)
+    b.add_node("gap_analyzer", gap_agent)
     b.add_node("matcher", matcher)
     b.add_node("recommender", recommender, retry_policy=_retry)
     b.add_node("formatter", formatter)
 
     b.add_edge(START, "retriever")
-    b.add_conditional_edges("retriever", _failed_or("ingest"), ["ingest", "formatter"])
-    b.add_conditional_edges("ingest", _failed_or("extractor"), ["extractor", "formatter"])
+    b.add_conditional_edges("retriever", _failed_or("converter"), ["converter", "formatter"])
+    b.add_conditional_edges("converter", _failed_or("parser"), ["parser", "formatter"])
+    b.add_conditional_edges("parser", _failed_or("extractor"), ["extractor", "formatter"])
     b.add_edge("extractor", "validator")
-    b.add_conditional_edges("validator", after_validator, ["extractor", "gap", "formatter"])
-    b.add_edge("gap", "matcher")
+    b.add_conditional_edges("validator", after_validator, ["extractor", "gap_analyzer", "formatter"])
+    b.add_edge("gap_analyzer", "matcher")
     b.add_conditional_edges("matcher", after_matcher, ["recommender", "formatter"])
     b.add_edge("recommender", "formatter")
     b.add_edge("formatter", END)

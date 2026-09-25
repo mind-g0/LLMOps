@@ -9,6 +9,15 @@ interface CvDetailProps {
   review: CVReview | null
 }
 
+// Mirrors agent/analysis/scoring.py's SCORE_WEIGHTS — breakdown values are points out of
+// these per-category maximums, not percentages.
+const SCORE_WEIGHTS: Record<string, number> = {
+  experience: 35,
+  skills: 30,
+  education: 20,
+  projects_certs: 15,
+}
+
 function CvDetail({ review }: CvDetailProps) {
   const { t } = useTranslation()
   const [fileUrl, setFileUrl] = useState('')
@@ -102,7 +111,7 @@ function CvDetail({ review }: CvDetailProps) {
 
       <div className="space-y-8 p-6">
       
-        {/* RAG Summary */}
+        {/* Summary */}
         <section>
           <div className="mb-3 flex items-center gap-3">
             <div className="h-5 w-1 rounded-full bg-blue-500" />
@@ -147,38 +156,6 @@ function CvDetail({ review }: CvDetailProps) {
           ) : (
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {t('review.noStrengths')}
-            </p>
-          )}
-        </section>
-
-        {/* Matching Requirements */}
-        <section>
-          <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
-            {t('review.matchingRequirements')}
-          </h3>
-
-          {review.matchingRequirements.length > 0 ? (
-            <div className="space-y-3">
-              {review.matchingRequirements.map((requirement, index) => (
-                <div
-                  key={`${requirement}-${index}`}
-                  className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30"
-                >
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 text-blue-700 dark:text-blue-300">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  </span>
-
-                  <p className="text-sm leading-6 text-blue-800 dark:text-blue-200">
-                    {requirement}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('review.noMatchingRequirements')}
             </p>
           )}
         </section>
@@ -237,12 +214,23 @@ function CvDetail({ review }: CvDetailProps) {
               Match Breakdown
             </h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              {Object.entries(((review.reportData.match as any).breakdown as Record<string, number>) || {}).map(([key, val]) => (
-                <div key={key} className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{key}</p>
-                  <p className="mt-1 text-lg font-bold text-slate-700 dark:text-slate-200">{typeof val === 'number' ? `${val.toFixed(1)}%` : String(val)}</p>
-                </div>
-              ))}
+              {Object.entries(((review.reportData.match as any).breakdown as Record<string, number>) || {}).map(([key, val]) => {
+                const max = SCORE_WEIGHTS[key]
+                const pct = typeof val === 'number' && max ? Math.min(100, Math.max(0, (val / max) * 100)) : 0
+                return (
+                  <div key={key} className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{key}</p>
+                    <p className="mt-1 text-lg font-bold text-slate-700 dark:text-slate-200">
+                      {typeof val === 'number' ? `${val.toFixed(1)} / ${max ?? '?'} pts` : String(val)}
+                    </p>
+                    {typeof val === 'number' && max && (
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div className="h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}
