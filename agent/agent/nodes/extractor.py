@@ -14,7 +14,7 @@ from analysis.rules import compute_experience_years
 from config import settings as S
 from utils.text import detect_language, dominant_language
 
-MAX_CV_CHARS = 30_000
+MAX_CV_CHARS = 15_000
 
 
 def _to_image(path: str) -> dspy.Image:
