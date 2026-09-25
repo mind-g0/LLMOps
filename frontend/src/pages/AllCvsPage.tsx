@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import StatusBadge from '../components/StatusBadge'
+import SimulatedProgress from '../components/SimulatedProgress'
 import { api } from '../api'
 
 import type { CVReview, ReviewStatus } from '../types/cvReview'
@@ -29,20 +30,26 @@ function AllCvsPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  const loadReviews = async () => {
-    setLoading(true)
+  const loadReviews = async (isPolling = false) => {
+    if (!isPolling) setLoading(true)
     try {
       const result = await api.listReviews('?page=1&page_size=100&sort=newest')
       setReviews(result.items)
-      setError('')
+      if (!isPolling) setError('')
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load CVs')
+      if (!isPolling) setError(loadError instanceof Error ? loadError.message : 'Unable to load CVs')
     } finally {
-      setLoading(false)
+      if (!isPolling) setLoading(false)
     }
   }
 
-  useEffect(() => { void loadReviews() }, [])
+  useEffect(() => {
+    void loadReviews()
+    const intervalId = setInterval(() => {
+      void loadReviews(true)
+    }, 5000)
+    return () => clearInterval(intervalId)
+  }, [])
 
   const jobs = useMemo(
     () => [...new Set(reviews.map((review) => review.jobRequirement))],
@@ -276,7 +283,24 @@ function AllCvsPage() {
                     </thead>
 
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                      {paginatedReviews.map((review) => (
+                      {paginatedReviews.map((review) => {
+                        const isProcessing = review.status === 'needs_human_review' && !review.ragSummary;
+                        if (isProcessing) {
+                          return (
+                            <tr key={review.id} className="animate-pulse bg-blue-50/50 shadow-[inset_4px_0_0_0_rgba(59,130,246,0.6)] dark:bg-blue-900/20">
+                              <td colSpan={7} className="px-5 py-5">
+                                <div className="flex items-center justify-between">
+                                  <span dir="ltr" className="font-semibold text-slate-900 dark:text-white">{review.cvName}</span>
+                                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                                    {t('allCvs.processing', 'Processing...')} <SimulatedProgress createdAt={review.createdAt} />
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+                        return (
                         <tr
                           key={review.id}
                           className="transition hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -288,8 +312,13 @@ function AllCvsPage() {
                             {review.cvName}
                           </td>
 
-                          <td className="px-5 py-5">
+                          <td className="px-5 py-5 space-y-2">
                             <StatusBadge status={review.status} />
+                            {review.match_score !== null && review.match_score !== undefined && (
+                              <div className="inline-flex items-center rounded-lg bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                                {review.match_score.toFixed(1)}% Match
+                              </div>
+                            )}
                           </td>
 
                           <td className="px-5 py-5 text-sm text-slate-600 dark:text-slate-300">
@@ -323,7 +352,8 @@ function AllCvsPage() {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
 
                   </table>
@@ -332,7 +362,22 @@ function AllCvsPage() {
 
               {/* Mobile Cards */}
               <div className="grid gap-4 md:hidden">
-                {paginatedReviews.map((review) => (
+                {paginatedReviews.map((review) => {
+                  const isProcessing = review.status === 'needs_human_review' && !review.ragSummary;
+                  if (isProcessing) {
+                    return (
+                      <article key={review.id} className="flex items-center justify-between rounded-2xl border border-blue-400 bg-blue-50/50 p-5 shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-pulse dark:border-blue-500 dark:bg-blue-900/20">
+                        <h2 dir="ltr" className="break-words text-start font-bold text-slate-900 dark:text-white">
+                          {review.cvName}
+                        </h2>
+                        <div className="ml-4 flex shrink-0 items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
+                          <SimulatedProgress createdAt={review.createdAt} />
+                          <svg className="h-6 w-6 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                        </div>
+                      </article>
+                    );
+                  }
+                  return (
                   <article
                     key={review.id}
                     className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
@@ -351,8 +396,13 @@ function AllCvsPage() {
                         </p>
                       </div>
 
-                      <div>
+                      <div className="flex items-center gap-3">
                         <StatusBadge status={review.status} />
+                        {review.match_score !== null && review.match_score !== undefined && (
+                          <span className="inline-flex items-center rounded-lg bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                            {review.match_score.toFixed(1)}% Match
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -395,7 +445,8 @@ function AllCvsPage() {
                       </button>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Pagination */}

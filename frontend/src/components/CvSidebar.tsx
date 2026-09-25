@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import StatusBadge from './StatusBadge'
+import SimulatedProgress from './SimulatedProgress'
 import type { CVReview, ReviewStatus } from '../types/cvReview'
 
 interface CvSidebarProps {
@@ -99,7 +100,25 @@ function CvSidebar({
                 {/* CVs */}
                 <div className="space-y-2">
                   {groupReviews.map((review) => {
+                    const isProcessing = review.status === 'needs_human_review' && !review.ragSummary;
                     const selected = review.id === selectedId
+
+                    if (isProcessing) {
+                      return (
+                        <div
+                          key={review.id}
+                          className="w-full flex items-center justify-between gap-3 rounded-xl border border-blue-400 bg-blue-50/50 p-4 shadow-[0_0_10px_rgba(59,130,246,0.3)] animate-pulse dark:border-blue-500 dark:bg-blue-900/20"
+                        >
+                          <p dir="ltr" className="min-w-0 truncate text-sm font-bold text-slate-900 dark:text-white">
+                            {review.cvName}
+                          </p>
+                          <div className="flex shrink-0 items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400">
+                            <SimulatedProgress createdAt={review.createdAt} />
+                            <svg className="h-5 w-5 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                          </div>
+                        </div>
+                      );
+                    }
 
                     return (
                       <button

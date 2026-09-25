@@ -263,6 +263,8 @@ function CvDetail({ review }: CvDetailProps) {
         )}
 
         {/* Metadata */}
+
+        {/* Metadata */}
         <section className="border-t border-slate-200 pt-6 dark:border-slate-800">
           <div className="grid gap-4 sm:grid-cols-2">
 

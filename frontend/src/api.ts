@@ -61,7 +61,7 @@ function mapReview(review: any): CVReview {
     ragSummary: review.rag_summary || '',
     strengths: review.strengths || [],
     missingRequirements: review.missing_requirements || [],
-    matchingRequirements: [],
+    matchingRequirements: review.strengths || [],
     match_score: review.match_score,
     createdAt: review.created_at,
     fileUrl: review.file_url,

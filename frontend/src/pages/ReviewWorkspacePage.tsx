@@ -16,21 +16,30 @@ function ReviewWorkspacePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadReviews = async () => {
-    setLoading(true)
+  const loadReviews = async (isPolling = false) => {
+    if (!isPolling) setLoading(true)
     try {
       const result = await api.listReviews('?page=1&page_size=100&sort=newest')
+      const readyReviews = result.items.filter(review => !(review.status === 'needs_human_review' && !review.ragSummary))
       setReviews(result.items)
-      setSelectedId((current) => current && result.items.some((item) => item.id === current) ? current : result.items[0]?.id || null)
-      setError('')
+      if (!isPolling) {
+        setSelectedId((current) => current && readyReviews.some((item) => item.id === current) ? current : readyReviews[0]?.id || null)
+        setError('')
+      }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load reviews')
+      if (!isPolling) setError(loadError instanceof Error ? loadError.message : 'Unable to load reviews')
     } finally {
-      setLoading(false)
+      if (!isPolling) setLoading(false)
     }
   }
 
-  useEffect(() => { void loadReviews() }, [])
+  useEffect(() => {
+    void loadReviews()
+    const intervalId = setInterval(() => {
+      void loadReviews(true)
+    }, 5000)
+    return () => clearInterval(intervalId)
+  }, [])
 
   const selectedReview = useMemo(() => reviews.find((review) => review.id === selectedId) || null, [reviews, selectedId])
   
@@ -102,7 +111,7 @@ function ReviewWorkspacePage() {
             
             <div key={selectedId || 'empty'} className="min-w-0 transition-all duration-300 ease-out transform animate-pop-in">
               <CvDetail review={selectedReview} />
-              {selectedReview && (
+              {selectedReview && !(selectedReview.status === 'needs_human_review' && !selectedReview.ragSummary) && (
                 <HumanReviewActions 
                   review={selectedReview} 
                   onApprove={() => void updateReview('approved', null)} 
