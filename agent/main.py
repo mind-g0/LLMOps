@@ -88,9 +88,6 @@ def _sync_job(job_id: str) -> bool:
     )
     desc = spec.get("description", "")
     chunks = [JobChunk(section="description", text=desc[:900])] if desc else []
-    Debugging Agent Extraction Errors
-    1:47 AM
-    
     store.upsert_job(req, chunks)
     return True
 

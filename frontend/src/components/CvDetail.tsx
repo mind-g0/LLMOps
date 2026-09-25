@@ -24,7 +24,11 @@ function CvDetail({ review }: CvDetailProps) {
 
   if (!review) {
     return (
-      <div className="flex min-h-[500px] items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="relative overflow-hidden flex min-h-[500px] items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        
+        {/* Background Glow Effect for Empty State */}
+        <div className="absolute -top-12 start-1/2 -z-10 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-600/20 pointer-events-none" />
+
         <div>
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
             <svg
@@ -61,7 +65,10 @@ function CvDetail({ review }: CvDetailProps) {
 
   return (
     <>
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+
+      {/* Background Glow Effect */}
+      <div className="absolute -top-16 start-1/2 -z-10 h-80 w-80 -translate-x-1/2 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-600/20 pointer-events-none" />
 
       {/* Header */}
       <div className="border-b border-slate-200 p-6 dark:border-slate-800">
