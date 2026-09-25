@@ -4,7 +4,7 @@ import { api } from '../api'
 
 const MAX_FILES = 10
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
-const ALLOWED_EXTENSIONS = ['pdf', 'docx']
+const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'png', 'jpg', 'jpeg', 'webp']
 
 function CvUpload({ jobRequirementId }: { jobRequirementId?: string }) {
   const { t } = useTranslation()
@@ -208,7 +208,7 @@ function CvUpload({ jobRequirementId }: { jobRequirementId?: string }) {
             ref={inputRef}
             type="file"
             multiple
-            accept=".pdf,.docx"
+            accept=".pdf,.docx,.png,.jpg,.jpeg,.webp"
             onChange={handleFileInput}
             className="hidden"
           />
@@ -247,6 +247,9 @@ function CvUpload({ jobRequirementId }: { jobRequirementId?: string }) {
 
             <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
               DOCX
+            </span>
+            <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              IMG
             </span>
 
             <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
