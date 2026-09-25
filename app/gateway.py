@@ -50,7 +50,7 @@ async def route_request(request: SingleRouteRequest):
 
     target_url = f"{base_url}/chat/completions"
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(300.0)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(600.0)) as client:
             if task_type == "llm" and "model" not in payload:
                 models_url = f"{base_url}/models"
                 models_response = await client.get(models_url, headers=headers)
