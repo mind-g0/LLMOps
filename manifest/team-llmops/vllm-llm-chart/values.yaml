@@ -1,20 +1,20 @@
 replicas: 1
 
 image: vllm/vllm-openai:v0.27.1
-# Qwen3.5-9B
+# Qwen3.5-9B - FP8 (compressed-tensors)
 model:
-  id: /models/Qwen3.5-9B
-  # quantization: awq
+  id: /models/Qwen3.5-9B-FP8
+  # quantization auto-detected from config.json (compressed-tensors fp8)
   dtype: auto
-  maxModelLen: 64000
-  gpuMemoryUtilization: "0.5"
-  maxNumSeqs: 64
+  maxModelLen: 8192
+  # FP8 drops weights to ~14GB on disk, ~5GB less VRAM than BF16
+  gpuMemoryUtilization: 0.35
+  maxNumSeqs: 32
 
   autoToolChoice: true
   toolCallParser: hermes
 
-# We are managing the secret for the API key from the terminal.
-apiKeySecret: 
+apiKeySecret:
   name: serving-keys
   key: api-key
 
@@ -22,16 +22,15 @@ service:
   type: ClusterIP
   port: 8000
   targetPort: 8000
-  #nodePort: 30800
 
 resources:
   requests:
-    cpu: "4"
-    memory: 6Gi
+    cpu: 6
+    memory: 16Gi
     nvidia.com/gpu: 1
   limits:
-    cpu: "4"
-    memory: 6Gi
+    cpu: 6
+    memory: 16Gi
     nvidia.com/gpu: 1
 
 modelCache:
@@ -40,7 +39,7 @@ modelCache:
 
 startupProbe:
   periodSeconds: 10
-  failureThreshold: 60
+  failureThreshold: 120
 
 readinessProbe:
   periodSeconds: 5
@@ -54,5 +53,5 @@ hpa:
   scaleDownStabilizationSeconds: 300
 
 modelVolume:
-  hostPath: /home/nassir/models/Qwen3.5-9B
-  mountPath: /models/Qwen3.5-9B
+  hostPath: /home/nassir/models/Qwen3.5-9B-FP8
+  mountPath: /models/Qwen3.5-9B-FP8

@@ -1,20 +1,19 @@
 replicas: 1
 
 image: vllm/vllm-openai:v0.27.1
-# Qwen3-VL-8B-Instruct
+# Qwen3-VL-8B-Instruct - FP16 (keep full precision for vision/OCR quality)
 model:
   id: /models/Qwen3-VL-8B-Instruct
   # quantization: awq
   dtype: auto
   maxModelLen: 16384
-  gpuMemoryUtilization: "0.45"
-  maxNumSeqs: 8
+  gpuMemoryUtilization: 0.55
+  maxNumSeqs: 4
 
   autoToolChoice: true
   toolCallParser: hermes
 
-# We are managing the secret for the API key from the terminal.
-apiKeySecret: 
+apiKeySecret:
   name: serving-keys
   key: api-key
 
@@ -22,15 +21,14 @@ service:
   type: ClusterIP
   port: 8001
   targetPort: 8000
-  #nodePort: 30800
 
 resources:
   requests:
-    cpu: "4"
+    cpu: 2
     memory: 12Gi
     nvidia.com/gpu: 1
   limits:
-    cpu: "4"
+    cpu: 2
     memory: 12Gi
     nvidia.com/gpu: 1
 
@@ -40,7 +38,7 @@ modelCache:
 
 startupProbe:
   periodSeconds: 10
-  failureThreshold: 60
+  failureThreshold: 120
 
 readinessProbe:
   periodSeconds: 5
