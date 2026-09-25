@@ -7,3 +7,4 @@ sqlalchemy[asyncio]==2.0.36
 asyncpg==0.30.0
 minio==7.2.15
 python-multipart==0.0.20
+redis==5.0.3

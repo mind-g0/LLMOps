@@ -101,7 +101,7 @@ function CvDetail({ review }: CvDetailProps) {
       </div>
 
       <div className="space-y-8 p-6">
-
+      
         {/* RAG Summary */}
         <section>
           <div className="mb-3 flex items-center gap-3">

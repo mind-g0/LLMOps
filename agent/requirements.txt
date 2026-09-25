@@ -13,3 +13,4 @@ python-dotenv>=1.0
 numpy>=1.26
 httpx>=0.28
 litellm>=1.60
+redis>=5.0.0

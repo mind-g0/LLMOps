@@ -17,6 +17,10 @@ from fastapi.responses import Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
+import os
+import redis
+
+redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "172.17.0.1"), port=6379, db=0, decode_responses=True)
 
 from app.db import get_db_session
 from app.models import CVReview, JobRequirement
@@ -129,6 +133,13 @@ async def create_cv_review(
         await session.rollback()
         raise
     await session.refresh(review)
+
+    if review.status == "needs_human_review" and not review.rag_summary:
+        try:
+            redis_client.rpush("cv_queue", str(review.id))
+        except Exception as e:
+            print(f"Failed to push to Redis: {e}")
+
     return review
 
 
