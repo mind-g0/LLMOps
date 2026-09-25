@@ -64,9 +64,14 @@ def build_profile(ext: CandidateExtraction, state: HRState, vision: bool) -> Can
 def extractor(state: HRState) -> dict:
     attempt = state.extract_attempts + 1
     # Always prefer vision when we have page images: the VLM sees the real layout, Docling's text
-    # (if usable) just rides along as a hint. Falls back to text-only only when there is nothing to
-    # look at (no page images at all).
+    # (if usable) just rides along as a hint. Falls back to text-only when there is nothing to look
+    # at (no page images), OR when VLM_MODEL isn't configured on this deployment — a missing/empty
+    # model id must never turn into a 100%-failure loop for every CV; it degrades to the text path
+    # instead (same as this node's original text-first behavior).
     vision = bool(state.page_paths)
+    if vision and not S.VLM_MODEL:
+        get_logger().warning("  [extractor] VLM_MODEL is not configured; falling back to text-only extraction")
+        vision = False
     text = state.text_layer if (state.text_ok or not vision) else ""
 
     get_logger().info(f"  [extractor] attempt={attempt} mode={'vision' if vision else 'text'}")

@@ -120,11 +120,16 @@
     "ragSummary": "Summary",
     "noRagSummary": "No summary available.",
 
-    "strengths": "Strengths",
-    "noStrengths": "No strengths available.",
+    "matchScore": "Match Score",
 
-    "missingRequirements": "Missing Requirements",
-    "noMissingRequirements": "No missing requirements.",
+    "skills": "Strengths (Skills)",
+    "noSkills": "No skills available.",
+
+    "missingRequirements": "Missing Requirements (Skill Gaps & Analysis)",
+    "noMissingRequirements": "No skill gaps found.",
+    "partialMatch": "Partial match: {{skill}}",
+
+    "learningRecommendations": "Learning Recommendations",
 
     "rejectionReason": "Rejection Reason",
     "processedDate": "Processed Date",

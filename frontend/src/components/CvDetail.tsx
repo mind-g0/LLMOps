@@ -23,6 +23,7 @@ function CvDetail({ review }: CvDetailProps) {
   const [fileUrl, setFileUrl] = useState('')
   const [fileUrlError, setFileUrlError] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const partialSkills: string[] = ((review?.reportData as any)?.skill_gap?.partial_skills as string[]) || []
 
   useEffect(() => {
     setFileUrl('')
@@ -103,8 +104,19 @@ function CvDetail({ review }: CvDetailProps) {
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex shrink-0 flex-col items-end gap-2">
             <StatusBadge status={review.status} />
+            {review.match_score !== null && review.match_score !== undefined && (
+              <div className="rounded-lg bg-slate-100 px-3 py-1.5 text-right dark:bg-slate-800">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t('review.matchScore')}
+                </p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {review.match_score.toFixed(1)}
+                  <span className="text-xs font-normal text-slate-400">/100</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -128,10 +140,10 @@ function CvDetail({ review }: CvDetailProps) {
           </div>
         </section>
 
-        {/* Strengths */}
+        {/* Skills */}
         <section>
           <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
-            {t('review.strengths')}
+            {t('review.skills')}
           </h3>
 
           {review.strengths.length > 0 ? (
@@ -155,22 +167,28 @@ function CvDetail({ review }: CvDetailProps) {
             </div>
           ) : (
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('review.noStrengths')}
+              {t('review.noSkills')}
             </p>
           )}
         </section>
 
-        {/* Missing Requirements */}
+        {/* Skill Gaps & Analysis */}
         <section>
           <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
             {t('review.missingRequirements')}
           </h3>
 
-          {review.missingRequirements.length > 0 ? (
+          {review.missingRequirements.length === 0 && partialSkills.length === 0 ? (
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                {t('review.noMissingRequirements')}
+              </p>
+            </div>
+          ) : (
             <div className="space-y-3">
               {review.missingRequirements.map((requirement, index) => (
                 <div
-                  key={`${requirement}-${index}`}
+                  key={`missing-${requirement}-${index}`}
                   className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30"
                 >
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-bold text-red-700 dark:bg-red-900 dark:text-red-300">
@@ -182,15 +200,42 @@ function CvDetail({ review }: CvDetailProps) {
                   </p>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                {t('review.noMissingRequirements')}
-              </p>
+
+              {partialSkills.map((skill, index) => (
+                <div
+                  key={`partial-${skill}-${index}`}
+                  className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30"
+                >
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                    ~
+                  </span>
+
+                  <p className="text-sm leading-6 text-amber-800 dark:text-amber-200">
+                    {t('review.partialMatch', { skill })}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
         </section>
+
+        {/* Learning Recommendations */}
+        {review.reportData && (review.reportData as any).recommendations && ((review.reportData as any).recommendations as any[]).length > 0 && (
+          <section>
+            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">
+              {t('review.learningRecommendations')}
+            </h3>
+            <div className="space-y-3">
+              {((review.reportData as any).recommendations as any[]).slice(0, 5).map((rec: any, i: number) => (
+                <div key={i} className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{rec.title || rec.missing_skill}</p>
+                  {rec.url && <a href={rec.url} target="_blank" rel="noreferrer" className="mt-1 block text-xs text-blue-600 underline">{rec.url}</a>}
+                  {rec.reason && <p className="mt-1 text-xs text-slate-500">{rec.reason}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Rejection Reason */}
         {review.rejectionReason && (
@@ -234,23 +279,6 @@ function CvDetail({ review }: CvDetailProps) {
             </div>
           </section>
         )}
-
-        {review.reportData && (review.reportData as any).recommendations && ((review.reportData as any).recommendations as any[]).length > 0 && (
-          <section>
-            <h3 className="mb-4 font-bold text-slate-900 dark:text-white">Recommendations</h3>
-            <div className="space-y-3">
-              {((review.reportData as any).recommendations as any[]).slice(0, 5).map((rec: any, i: number) => (
-                <div key={i} className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{rec.title || rec.missing_skill}</p>
-                  {rec.url && <a href={rec.url} target="_blank" rel="noreferrer" className="mt-1 block text-xs text-blue-600 underline">{rec.url}</a>}
-                  {rec.reason && <p className="mt-1 text-xs text-slate-500">{rec.reason}</p>}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Metadata */}
 
         {/* Metadata */}
         <section className="border-t border-slate-200 pt-6 dark:border-slate-800">

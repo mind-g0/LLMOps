@@ -120,11 +120,16 @@
     "ragSummary": "الملخص",
     "noRagSummary": "لا يتوفر ملخص.",
 
-    "strengths": "نقاط القوة",
-    "noStrengths": "لا توجد نقاط قوة متاحة.",
+    "matchScore": "درجة المطابقة",
 
-    "missingRequirements": "المتطلبات غير المتوفرة",
-    "noMissingRequirements": "لا توجد متطلبات مفقودة.",
+    "skills": "نقاط القوة (المهارات)",
+    "noSkills": "لا توجد مهارات متاحة.",
+
+    "missingRequirements": "المتطلبات غير المتوفرة (فجوات المهارات والتحليل)",
+    "noMissingRequirements": "لا توجد فجوات في المهارات.",
+    "partialMatch": "تطابق جزئي: {{skill}}",
+
+    "learningRecommendations": "التوصيات التعليمية",
 
     "rejectionReason": "سبب عدم القبول",
     "processedDate": "تاريخ المعالجة",
