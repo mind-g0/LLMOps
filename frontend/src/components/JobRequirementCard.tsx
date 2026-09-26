@@ -11,6 +11,7 @@ interface JobFormData {
   jobName: string
   jobTitle: string
   description: string
+  requirements: string
 }
 
 function JobRequirementCard({ number, onSaved }: JobRequirementCardProps) {
@@ -24,6 +25,7 @@ function JobRequirementCard({ number, onSaved }: JobRequirementCardProps) {
     jobName: '',
     jobTitle: '',
     description: '',
+    requirements: '',
   })
 
   const handleChange = (
@@ -44,7 +46,7 @@ function JobRequirementCard({ number, onSaved }: JobRequirementCardProps) {
         name: formData.jobName || `Job ${number}`,
         title: formData.jobTitle,
         description: formData.description,
-        requirements: [],
+        requirements: formData.requirements.split(',').map(s => s.trim()).filter(Boolean),
       })
       onSaved?.(job)
       setIsEditing(false)
@@ -134,6 +136,23 @@ function JobRequirementCard({ number, onSaved }: JobRequirementCardProps) {
             disabled={!isEditing}
             placeholder={t('jobCard.jobTitlePlaceholder')}
             className={inputStyle}
+          />
+        </div>
+
+        {/* Requirements */}
+        <div>
+          <label className={labelStyle}>
+            Required Skills (comma separated)
+          </label>
+
+          <textarea
+            name="requirements"
+            value={formData.requirements}
+            onChange={handleChange}
+            disabled={!isEditing}
+            rows={2}
+            placeholder="Python, TensorFlow, PyTorch, Docker"
+            className={`${inputStyle} resize-none`}
           />
         </div>
 
