@@ -55,6 +55,9 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.apiKeySecret.name }}
                   key: {{ .Values.apiKeySecret.key }}
+            {{- if .Values.extraEnv }}
+            {{- toYaml .Values.extraEnv | nindent 12 }}
+            {{- end }}
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -67,15 +70,15 @@ spec:
             httpGet:
               path: /health
               port: 8000
-            periodSeconds: 10
-            failureThreshold: 60
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
 
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
-            periodSeconds: 5
-            failureThreshold: 3
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
 
       volumes:
         - name: model

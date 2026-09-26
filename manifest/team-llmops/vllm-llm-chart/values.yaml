@@ -1,6 +1,6 @@
 replicas: 1
 
-image: vllm/vllm-openai:v0.27.1
+image: vllm/vllm-openai:v0.29.0
 # Qwen3.5-9B - FP8 (compressed-tensors)
 model:
   id: /models/Qwen3.5-9B-FP8
@@ -26,11 +26,11 @@ service:
 resources:
   requests:
     cpu: 6
-    memory: 16Gi
+    memory: 20Gi
     nvidia.com/gpu: 1
   limits:
     cpu: 6
-    memory: 16Gi
+    memory: 20Gi
     nvidia.com/gpu: 1
 
 modelCache:
@@ -55,3 +55,7 @@ hpa:
 modelVolume:
   hostPath: /home/nassir/models/Qwen3.5-9B-FP8
   mountPath: /models/Qwen3.5-9B-FP8
+
+extraEnv:
+  - name: CUDA_VISIBLE_DEVICES
+    value: "0"

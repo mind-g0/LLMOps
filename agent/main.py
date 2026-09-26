@@ -296,8 +296,9 @@ def main() -> None:
                         # Timeout reached, break to let the main loop sync jobs
                         break
                 except Exception as e:
-                    log.error(f"Redis queue error: {e}")
-                    time.sleep(a.interval)
+                    if "Timeout" not in str(e):
+                        log.error(f"Redis queue error: {e}")
+                        time.sleep(a.interval)
                     break
 
         log.info("Spawning 10 worker threads to listen on Redis 'cv_queue'...")

@@ -68,6 +68,18 @@ services:
       - '--path.rootfs=/host'
     volumes:
       - '/:/host:ro,rslave'
+
+  agent:
+    image: agent
+    container_name: llmops-agent
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - agent/.env
+    volumes:
+      - /home/nassir/models/hf/:/models/huggingface
+    command: --watch
+
 volumes:
   qdrant_storage:
   qdrant_config:
