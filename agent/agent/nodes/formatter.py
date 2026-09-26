@@ -22,6 +22,8 @@ LABELS = {
             "output_language_mismatch": "Output language does not match target",
             "assessment_failed": "Qualitative assessment failed", "justification_failed": "Justification failed",
             "low_confidence": "Low confidence", "mid_score": "Mid-range score",
+            "job_has_no_required_skills": "No required skills configured for this job",
+            "not_a_cv": "Document does not appear to be a CV",
         },
     },
     "ar": {
@@ -42,14 +44,21 @@ LABELS = {
             "output_language_mismatch": "لغة المخرجات لا تطابق اللغة المستهدفة",
             "assessment_failed": "فشل التقييم النوعي", "justification_failed": "فشل إنشاء التبرير",
             "low_confidence": "ثقة منخفضة", "mid_score": "درجة متوسطة",
+            "job_has_no_required_skills": "لا توجد مهارات مطلوبة محددة لهذه الوظيفة",
+            "not_a_cv": "المستند لا يبدو أنه سيرة ذاتية",
         },
     },
 }
 
 
+def humanize_code(lang: str, code: str) -> str:
+    """Human-readable label for a review/flag code, in the given language. Unknown codes pass through."""
+    return LABELS[lang]["codes"].get(code, code)
+
+
 def render_markdown(r: HRReport) -> str:
     L = LABELS[r.target_language]
-    code = lambda c: L["codes"].get(c, c)  # noqa: E731
+    code = lambda c: humanize_code(r.target_language, c)  # noqa: E731
     out = [f"# {L['title']}", ""]
     if r.status != "ok" or not r.match or not r.profile:
         out.append(f"**{L['failed']}**")

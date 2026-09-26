@@ -46,6 +46,16 @@ def validator(state: HRState) -> dict:
     if issues and can_retry:
         return {"retry_extract": True, "use_vision": True, "validation_issues": issues, "_status": "retry"}
 
+    # Retries exhausted and literally nothing was extractable: this isn't a weak CV, it's
+    # not a CV at all (e.g. an invoice or unrelated document). A genuine weak-but-real CV
+    # will still have a name, or a skill, or an experience/education entry, so it never
+    # trips all three at once and is scored normally instead of being hard-blocked here.
+    if {"missing_name", "no_skills", "no_experience_or_education"} <= set(issues):
+        rdem = RDEMError(node="validator", error_type="not_a_cv", attempt=attempts,
+                         message="No name, skills, or experience/education could be extracted.",
+                         suggestion="Confirm the uploaded file is a CV; route to manual review if unsure.")
+        return {"status": "failed", "retry_extract": False, "global_error_log": [rdem], "_status": "error"}
+
     flags = list(p.flags) + detect_anomalies(p)
     if issues:  # attempts exhausted: proceed, but force human review
         flags.append(Flag(code="unresolved_validation", detail=",".join(issues)))

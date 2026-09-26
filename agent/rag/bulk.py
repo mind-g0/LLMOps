@@ -10,8 +10,9 @@ from typing import Any
 
 from agent.dspy_setup import init_dspy
 from agent.logger import get_logger, init_run
+from agent.nodes.converter import converter
 from agent.nodes.extractor import extractor
-from agent.nodes.ingest import ingest
+from agent.nodes.parser import parser
 from agent.nodes.validator import validator
 from agent.state import CandidateProfile, HRState
 from config import settings as S
@@ -29,9 +30,12 @@ def _apply(state: HRState, update: dict[str, Any]) -> HRState:
 def extract_profile(cv_path: str, output_language: str | None = None) -> CandidateProfile:
     """Ingest and validate one CV without loading or evaluating a job."""
     state = HRState(cv_path=cv_path, job_id="__bulk_index__", output_language=output_language)
-    state = _apply(state, ingest(state))
+    state = _apply(state, converter(state))
     if state.status == "failed":
-        raise ValueError(f"ingest failed for {cv_path}")
+        raise ValueError(f"conversion failed for {cv_path}")
+    state = _apply(state, parser(state))
+    if state.status == "failed":
+        raise ValueError(f"parsing failed for {cv_path}")
 
     for _ in range(S.MAX_EXTRACT_ATTEMPTS):
         update = extractor(state)

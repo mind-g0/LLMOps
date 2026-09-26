@@ -84,7 +84,7 @@ EVIDENCE_TOP_K = _int("EVIDENCE_TOP_K", 3)
 # "react": thinking + tool loop over the whole CV for every skill code could not confirm.
 # "hybrid": single guided call, only for the ambiguous embedding band (cheaper; use for the ablation).
 GAP_MODE = _env("GAP_MODE", "react")
-GAP_MAX_ITERS = _int("GAP_MAX_ITERS", 5)
+GAP_MAX_ITERS = _int("GAP_MAX_ITERS", 3)
 GAP_WORKERS = _int("GAP_WORKERS", 3)
 
 # ── Scoring rubric (from the team's evaluator; computed in code, not by the LLM) ──
@@ -98,7 +98,7 @@ TRIAGE_MIN_CONFIDENCE = _float("TRIAGE_MIN_CONFIDENCE", 0.70)
 # ── Recommendation ─────────────────────────────────────────────────────────
 ENABLE_RECOMMENDATIONS = _bool("ENABLE_RECOMMENDATIONS", True)
 MAX_RECOMMEND_SKILLS = _int("MAX_RECOMMEND_SKILLS", 5)
-RECOMMEND_MAX_ITERS = _int("RECOMMEND_MAX_ITERS", 4)
+RECOMMEND_MAX_ITERS = _int("RECOMMEND_MAX_ITERS", 3)
 RECOMMEND_WORKERS = _int("RECOMMEND_WORKERS", 3)
 CATALOG_MIN_SCORE = _float("CATALOG_MIN_SCORE", 0.55)
 TAVILY_API_KEY = _env("TAVILY_API_KEY", "")

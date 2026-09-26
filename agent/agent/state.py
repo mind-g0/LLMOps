@@ -208,6 +208,7 @@ class HRState(BaseModel):
     # ingest
     candidate_id: str = ""
     page_paths: list[str] = Field(default_factory=list)
+    raw_text_layer: str = ""  # byproduct text from page rendering (pdf/docx); fallback for parser
     text_layer: str = ""
     text_ok: bool = False
 
