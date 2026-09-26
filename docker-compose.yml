@@ -1,28 +1,88 @@
----
 services:
-  fastapi:
-    image: $DOCKER_FASTAPI_IMAGE
-    container_name: fastapi
-    restart: always
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: llmops-qdrant
+    restart: unless-stopped
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
+      - "6323:6333" # this is the default port for Qdrant API
+      - "6324:6334" # this is the default port for Qdrant gRPC
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
     volumes:
-      - ai-models:/app/.cache/huggingface
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    #add GPU support
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - qdrant_storage:/qdrant/storage
+      - qdrant_config:/qdrant/config
+
+  llmops-s3:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: llmops-s3
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # GUI
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: ${S3_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - S3_data:/data
+  
+  postgres:
+    image: postgres:16
+    container_name: llmops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: llmops
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: llmops
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: llmops-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: llmops-cloudbeaver
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8978:8978"
+    volumes:
+      - cloudbeaver_workspace:/opt/cloudbeaver/workspace
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: llmops-node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - '/:/host:ro,rslave'
+
+  agent:
+    image: agent
+    container_name: llmops-agent
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - agent/.env
+    volumes:
+      - /home/nassir/models/hf/:/models/huggingface
+    command: --watch
+
 volumes:
-  ai-models:
+  qdrant_storage:
+  qdrant_config:
+  S3_data:
+  postgres_data:
+  cloudbeaver_workspace:

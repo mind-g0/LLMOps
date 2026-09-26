@@ -1,0 +1,1 @@
+{"cluster": "pod:aidc-t03", "namespace": "salman", "pod": "serving", "image": "cyp7/aidc-serving:cpu-v1", "node": "aidc-t03", "chat_status": 200}

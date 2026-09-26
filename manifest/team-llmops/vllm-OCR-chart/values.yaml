@@ -1,0 +1,60 @@
+replicas: 1
+
+image: vllm/vllm-openai:v0.29.0
+# Qwen3-VL-8B-Instruct - FP16 (keep full precision for vision/OCR quality)
+model:
+  id: /models/Qwen3-VL-8B-Instruct
+  # quantization: awq
+  dtype: auto
+  maxModelLen: 16384
+  gpuMemoryUtilization: 0.55
+  maxNumSeqs: 4
+
+  autoToolChoice: true
+  toolCallParser: hermes
+
+apiKeySecret:
+  name: serving-keys
+  key: api-key
+
+service:
+  type: ClusterIP
+  port: 8001
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 2
+    memory: 24Gi
+    nvidia.com/gpu: 1
+  limits:
+    cpu: 2
+    memory: 24Gi
+    nvidia.com/gpu: 1
+
+modelCache:
+  hostPath: /var/lib/hf-cache
+  mountPath: /root/.cache/huggingface
+
+startupProbe:
+  periodSeconds: 10
+  failureThreshold: 120
+
+readinessProbe:
+  periodSeconds: 5
+  failureThreshold: 3
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUPercent: 70
+  scaleDownStabilizationSeconds: 300
+
+modelVolume:
+  hostPath: /home/nassir/models/Qwen3-VL-8B-Instruct
+  mountPath: /models/Qwen3-VL-8B-Instruct
+
+extraEnv:
+  - name: CUDA_VISIBLE_DEVICES
+    value: "0"

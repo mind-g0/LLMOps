@@ -1,0 +1,16 @@
+# Agent Python dependencies
+dspy>=3.0
+langgraph>=0.6
+pydantic>=2.7
+qdrant-client>=1.12
+sentence-transformers>=3.0
+docling>=2.0
+pypdfium2>=4.30
+pillow>=10.0
+tavily-python>=0.5
+trafilatura>=2.0
+python-dotenv>=1.0
+numpy>=1.26
+httpx>=0.28
+litellm>=1.60
+redis>=5.0.0
