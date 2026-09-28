@@ -1,322 +1,262 @@
-# LLMOps Gateway
+# LLMOps — HR AI Platform v1.0.0
 
-FastAPI gateway for the HR AI platform. It routes requests to the configured LLM
-or OCR backend, discovers the available LLM model automatically, supports token
-streaming, and persists CV review results in PostgreSQL and MinIO.
+End-to-end HR AI platform: upload CVs, match against job requirements, and
+receive structured evaluation reports with skill-gap analysis and learning
+recommendations.
 
-The RAG pipeline is intentionally not implemented in this repository yet. The
-handoff contract for the RAG team is documented in
-[RAG_INTEGRATION.md](RAG_INTEGRATION.md).
-
-## Architecture
-
-```text
-Frontend
-   |
-   v
-FastAPI gateway :8004
-   |-- LLM backend (authenticated)
-   |-- OCR backend
-   |-- PostgreSQL: review metadata and decisions
-   `-- MinIO: original CV files
+```
+                 ┌──────────────┐
+                 │   Frontend   │  React + Vite + Tailwind
+                 │  :5500/:6661 │
+                 └──────┬───────┘
+                        │ /v1/chat/completions  /api/v1/cv-reviews
+                        v
+            ┌───────────────────────┐
+            │  FastAPI Gateway      │  Port 8004
+            │  app/                  │
+            │  - gateway.py (proxy)  │  LLM + OCR routing
+            │  - reviews.py (CRUD)   │  CV persistence
+            │  - jobs.py (jobs)      │  Job requirement CRUD
+            │  - storage.py (MinIO)  │  CV file storage
+            └───────┬───────┬───────┘
+                    │       │
+                    v       v
+        ┌───────────────────┐  ┌────────────────┐
+        │   LangGraph Agent │  │  Qdrant        │
+        │   agent/          │  │  :6323         │
+        │   CV analysis     │  │  Vector store   │
+        │   pipeline        │  │  Job embeddings │
+        └───────────────────┘  └────────────────┘
+                    │
+                    v
+        ┌───────────────────┐
+        │   PostgreSQL      │  MinIO (S3)
+        │   :5432           │  :9000
+        │   Review metadata │  CV files
+        └───────────────────┘
 ```
 
 ## Repository Structure
 
-```text
+```
 LLMOps/
-|-- app/                    Backend application
-|   |-- main.py             FastAPI entrypoint and app lifecycle
-|   |-- gateway.py          LLM/OCR proxy and token streaming
-|   |-- db.py               Async PostgreSQL connection
-|   |-- models.py           SQLAlchemy ORM models
-|   |-- reviews.py          CV review persistence endpoints
-|   |-- storage.py          MinIO connection and CV uploads
-|   `-- schemas.py           API request schemas
-|-- app/frontend/           React/Tailwind frontend workspace
-|-- manifest/               Kubernetes manifests and team material
-|-- docker-compose.yml      Local PostgreSQL, MinIO, and supporting services
-|-- Dockerfile              Backend container image
-|-- requirements.txt        Python dependencies
-|-- .env.example            Configuration template
-|-- README.md               Repository overview and setup
-`-- RAG_INTEGRATION.md      RAG team handoff contract
+├── app/                    FastAPI backend (gateway, reviews, jobs)
+│   ├── main.py             Entrypoint, CORS, router setup
+│   ├── gateway.py          LLM/OCR proxy + token streaming
+│   ├── reviews.py          CV review CRUD + file upload
+│   ├── jobs.py             Job requirement CRUD
+│   ├── db.py               Async PostgreSQL
+│   ├── models.py           SQLAlchemy ORM
+│   ├── schemas.py          Pydantic schemas
+│   └── storage.py          MinIO client
+├── agent/                  LangGraph CV evaluation pipeline
+│   ├── main.py             Poll/event-driven entrypoints (+ CLI)
+│   ├── agent/              Graph nodes (retriever → converter → parser → extractor → validator → gap → matcher → recommender → formatter)
+│   ├── rag/                Vector store utils (embedder, store, job_ingest, bulk, sync_job)
+│   ├── config/             Settings and tunable parameters
+│   ├── analysis/           Scoring rules and skill matching
+│   ├── tests/              Pytest suite (24 deterministic tests, no GPU)
+│   ├── cv_data/            Sample CVs
+│   └── data/               Job postings
+├── frontend/               React + Vite + Tailwind + i18n (EN/AR)
+│   ├── src/                Components, pages, locales, API layer
+│   └── Dockerfile          Nginx-served production build
+├── manifest/               K8s Helm charts + team configs
+│   ├── team-llmops/        vLLM, agent, backend, frontend charts
+│   ├── nassir/             Per-developer overlays
+│   ├── salman/
+│   └── yaser/
+├── eval/                   Parsing benchmarks and evaluation results
+├── docker-compose.yml      Local dev stack (7 services)
+├── Dockerfile              Backend container image
+├── requirements.txt        Python dependencies
+└── .env.example            Configuration template
 ```
 
-Frontend implementation requirements are in
-[FRONTEND_TEAM_INSTRUCTIONS.md](FRONTEND_TEAM_INSTRUCTIONS.md). Backend gaps
-and planned API work are tracked in
-[UNCOMPLETED_BACKEND.md](UNCOMPLETED_BACKEND.md).
+## Agent Pipeline
 
-### Current Request Flow
-
-```text
-Client
-  |
-  | POST /v1/chat/completions
-  v
-app/main.py
-  |
-  v
-app/gateway.py
-  |-- task_type = llm -> configured LLM backend
-  `-- task_type = ocr -> configured OCR backend
+```
+START → retriever → converter → parser → extractor → validator
+                                                        │
+                          ┌─────────────────────────────┘
+                          v
+                    gap (ReAct) → matcher → recommender (ReAct) → formatter
 ```
 
-For an LLM request, the gateway discovers the available model automatically,
-adds the backend authentication header, and either returns the complete response
-or streams SSE chunks when `payload.stream` is true.
+| Node       | LLM?               | Notes |
+|------------|--------------------|-------|
+| retriever  | no                 | Job loaded by `job_id` payload; fails fast if missing |
+| converter  | no                 | File→image conversion (PDF/DOCX pages) |
+| parser     | no                 | Text parsing from Docling + page images |
+| extractor  | Qwen3-VL           | Vision-first for every PDF/DOCX; values kept in original language |
+| validator  | no                 | Grounding checks (skills/name must exist in document), confidence |
+| gap        | Qwen3.5 thinking   | ReAct: skill-gap analysis with CV search + job context |
+| matcher    | Qwen3.5            | Score from rubric + triage; enum verdicts |
+| recommender| Qwen3.5 + Tavily   | ReAct: learning resource recommendations from real search |
+| formatter  | no                 | JSON + localised markdown (EN/AR); always emits a report |
 
-### Current CV Persistence Flow
+## Services (Docker Compose)
 
-```text
-CV file + approval decision
-  |
-  v
-POST /api/v1/cv-reviews
-  |-- app/storage.py -> original CV in MinIO
-  `-- app/models.py  -> decision metadata in PostgreSQL
-```
-
-The current repository stores review results, but it does not perform OCR,
-embeddings, retrieval, or HR evaluation yet.
-
-## Planned RAG Structure
-
-The RAG team will add the RAG pipeline under `app/rag/`. This keeps RAG logic
-separate from the gateway, database, and MinIO integrations that already exist.
-
-```text
-app/rag/
-|-- __init__.py
-|-- pipeline.py       Main CV analysis orchestration
-|-- schemas.py        Validated RAG input and output models
-|-- prompts.py        HR evaluation prompts and output instructions
-|-- extractor.py      PDF/DOCX text extraction and OCR calls
-|-- chunker.py        Splitting CV and HR documents into chunks
-|-- embeddings.py     Embedding model client
-|-- retriever.py      Vector search and HR context retrieval
-`-- evaluator.py      LLM evaluation and structured decision parsing
-```
-
-The planned RAG flow is:
-
-```text
-CV upload
-  -> extract text
-  -> split text into chunks
-  -> create embeddings
-  -> retrieve HR requirements
-  -> ask the LLM for a structured decision
-  -> validate the decision
-  -> save CV through /api/v1/cv-reviews
-```
-
-The RAG pipeline should expose one clear application-level function:
-
-```python
-async def analyze_cv(cv_bytes: bytes, filename: str) -> CVDecision:
-    ...
-```
-
-It must return:
-
-```json
-{
-  "approved": false,
-  "rejection_reason": "Missing required experience"
-}
-```
-
-The RAG team owns extraction, chunking, embeddings, retrieval, prompts, and
-decision generation. It should use the existing gateway for model calls and the
-existing CV review endpoint for persistence. It should not create duplicate
-PostgreSQL or MinIO connection code.
-
-See [RAG_INTEGRATION.md](RAG_INTEGRATION.md) for the complete handoff contract.
-
-## Requirements
-
-- Python 3.12+
-- Docker and Docker Compose
-- PostgreSQL
-- MinIO
-- A configured LLM backend with an OpenAI-compatible API
+| Service      | Image                        | Port(s)     | Purpose |
+|--------------|------------------------------|-------------|---------|
+| postgres     | postgres:16                  | 5432        | Review metadata + job requirements |
+| llmops-s3    | minio/minio                  | 9000, 9001  | CV file storage |
+| qdrant       | qdrant/qdrant                | 6323, 6324  | Vector store (job embeddings, CV index) |
+| redis        | redis:alpine                 | 6379        | Event queue for agent CV processing |
+| cloudbeaver  | dbeaver/cloudbeaver          | 8978        | Database GUI |
+| node_exporter| prometheus/node-exporter     | host        | System metrics |
+| agent        | agent (local build)          | host        | LangGraph CV analysis daemon |
 
 ## Configuration
 
-Copy the example environment file and fill in real values:
+Copy and fill:
 
 ```bash
 cp .env.example .env
 ```
 
-Never commit `.env` or API keys.
-
-Important variables:
+Key variables:
 
 ```env
-MODEL_LLM_URL=https://llm.example.com/v1/chat/completions
-MODEL_OCR_URL=http://localhost:8002/v1/chat/completions
-LLM_API_KEY=your-llm-api-key
-DATABASE_URL=postgresql+asyncpg://llmops:password@localhost:5432/llmops
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=admin
-MINIO_SECRET_KEY=your-minio-password
+# Docker Compose credentials
+S3_ROOT_PASSWORD=...
+DB_PASSWORD=...
+QDRANT_API_KEY=...
+
+# LLM / OCR backends (K8s cluster URLs)
+MODEL_LLM_BASE_URL=http://<k8s-svc>:8000/v1
+MODEL_OCR_BASE_URL=http://<k8s-svc>:8001/v1
+LLM_API_KEY=...
+
+# Database / storage
+DATABASE_URL=postgresql+asyncpg://llmops:<pw>@<host>:5432/llmops
+MINIO_ENDPOINT=<minio-host>/
+MINIO_ACCESS_KEY=...
+MINIO_SECRET_KEY=...
 MINIO_BUCKET=cv-files
-MINIO_SECURE=false
-CORS_ALLOW_ORIGINS=http://localhost:5500,http://127.0.0.1:5500
+MINIO_SECURE=true
+
+# CORS
+CORS_ALLOW_ORIGINS=https://llmops.example.com,https://llmops-front.example.com
+
+# Redis (event-driven agent)
+REDIS_HOST=172.17.0.1
+
+# Agent settings
+LM_TIMEOUT=600
+TAVILY_API_KEY=tvly-...
 ```
 
 All variables above are required. The application does not provide fallback
-values for database, MinIO, model, or CORS configuration.
+values.
 
-## Local Setup
+## Setup
 
-Install Python dependencies:
+### Backend + infrastructure
 
 ```bash
+docker compose up -d postgres llmops-s3 qdrant redis cloudbeaver
+
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
+pip install -r requirements.txt
 
-Start PostgreSQL and MinIO:
-
-```bash
-docker compose up -d postgres llmops-s3
-```
-
-Start the API:
-
-```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8004
 ```
 
-The application creates the `cv_reviews` table during startup. Production
-deployments should use database migrations instead of automatic table creation.
-
-Check the gateway:
+Check health:
 
 ```bash
 curl http://localhost:8004/health
+# {"status": "healthy"}
 ```
 
-Expected response:
-
-```json
-{ "status": "healthy" }
-```
-
-## LLM Gateway
-
-The public gateway endpoint is:
-
-```text
-POST /v1/chat/completions
-```
-
-The client selects the backend with `task_type`. The gateway selects the model
-from the LLM backend's `/v1/models` endpoint when `model` is not supplied.
-
-Non-streaming request:
+### Agent (LangGraph CV evaluation)
 
 ```bash
-curl -X POST http://localhost:8004/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "task_type": "llm",
-    "payload": {
-      "stream": false,
-      "messages": [
-        {"role": "user", "content": "Hello"}
-      ],
-      "max_tokens": 50
-    }
-  }'
+cd agent
+uv venv --python 3.12 && source .venv/bin/activate
+uv pip install -r requirements.lock
+
+# Ingest job postings into Qdrant
+python -m rag.job_ingest --dir data
+
+# Process a single CV
+python main.py --cv cv_data/doc_0001.pdf --job-id backend_engineer
+
+# Process all pending CVs (daemon mode)
+python main.py --watch
+
+# Bulk evaluation
+python -m rag.bulk --cv-dir cv_data --job-id backend_engineer --top-k 50
 ```
 
-Streaming request:
+### Agent (Docker)
 
 ```bash
-curl -N -X POST http://localhost:8004/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "task_type": "llm",
-    "payload": {
-      "stream": true,
-      "messages": [
-        {"role": "user", "content": "Explain Kubernetes briefly."}
-      ],
-      "max_tokens": 100
-    }
-  }'
+sudo docker build --no-cache -t agent ./agent
+sudo docker run -d --name llmops-agent \
+  --restart unless-stopped \
+  --network host \
+  -v /home/nassir/models/hf/:/models/huggingface \
+  --env-file .env \
+  agent --watch
 ```
 
-The gateway adds the configured LLM key as an internal Bearer token. Clients do
-not send the LLM key to the gateway.
+Scale horizontally — run multiple containers; Redis distributes CVs atomically.
 
-## CV Review Persistence
-
-Create a review record and upload the original CV:
+### Frontend
 
 ```bash
-curl -X POST http://localhost:8004/api/v1/cv-reviews \
-  -F "cv=@candidate.pdf" \
-  -F "approved=false" \
-  -F "rejection_reason=Missing required experience"
+cd frontend
+npm install
+npm run dev       # dev mode
+npm run build     # production build → dist/
 ```
 
-Endpoints:
+## API Endpoints
 
-```text
-POST /api/v1/cv-reviews       Upload CV and save decision
-GET  /api/v1/cv-reviews       List saved reviews
-GET  /api/v1/cv-reviews/{id}  Get one review
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| GET    | `/health` | Health check |
+| POST   | `/v1/chat/completions` | LLM/OCR gateway (streaming supported) |
+| POST   | `/api/v1/cv-reviews` | Upload CV + save decision |
+| GET    | `/api/v1/cv-reviews` | List saved reviews |
+| GET    | `/api/v1/cv-reviews/{id}` | Get single review |
+| GET    | `/api/v1/cv-reviews/{id}/file-content` | Download CV file |
+| PATCH  | `/api/v1/cv-reviews/{id}` | Update review (agent writes results here) |
+| POST   | `/api/v1/jobs` | Create job requirement |
+| GET    | `/api/v1/jobs` | List job requirements |
+| POST   | `/api/v1/jobs/sync` | Sync jobs to Qdrant |
+| DELETE | `/api/v1/jobs/{id}` | Delete job requirement |
 
-Each review stores the CV name, approval decision, rejection reason, MinIO
-object key, UUID, and creation time in PostgreSQL. The original CV is stored in
-MinIO under `cvs/<review-id>/<filename>`.
+## Deployment (K3s)
 
-`rejection_reason` is optional because the RAG decision format is still subject
-to human review. Approved and rejected records may both store a null reason.
+Helm charts in `manifest/team-llmops/`:
 
-## Frontend
+- `vLLM-OCR-chart/` — Qwen3-VL OCR serving (FP8, time-sliced GPU)
+- `vLLM-LLM-chart/` — Qwen3.5-9B text LLM
+- `agent-chart/` — LangGraph agent
+- `backend-chart/` — FastAPI gateway
+- `frontend-chart/` — React SPA (Nginx)
+- `qdrant-chart/` — Vector store
+- `monitoring-stack/` — Prometheus + Grafana
 
-Start the static chat frontend in a second terminal:
+Single GPU time-sliced into 2 replicas via NVIDIA device plugin. Both models
+(~14G + ~16G VRAM) fit on a 48 GB RTX A6000.
 
-```bash
-python -m http.server 5500 --directory frontend
-```
+## Architecture Decisions
 
-Open:
+- **Vision-first extraction** — every PDF/DOCX goes through the VLM (not just
+  text failures), catching tables and layout-only content.
+- **Event-driven agent** — Redis queue replaces polling for scalable CV
+  processing; multiple agent containers consume from the same queue.
+- **Two-agent ReAct loops** — gap analysis and learning recommendations each
+  use bounded tool-use iterations (3 rounds max) for latency control.
+- **No PII in search** — Tavily calls from recommender send skill names only,
+  never candidate names or contact info.
 
-```text
-http://localhost:5500
-```
+## Team
 
-The frontend sends streaming requests to the gateway at port `8004`.
-
-## RAG Integration
-
-The RAG team owns OCR, extraction, chunking, embeddings, retrieval, HR context,
-and decision generation. LLMOps owns model proxying, PostgreSQL, MinIO, and
-review persistence.
-
-Read [RAG_INTEGRATION.md](RAG_INTEGRATION.md) for the required decision schema,
-team responsibilities, and integration examples.
-
-## Validation
-
-Compile the Python application:
-
-```bash
-python -m py_compile app/*.py
-```
-
-Check the API health endpoint after starting the server:
-
-```bash
-curl http://localhost:8004/health
-```
+Team 4 — Beamdata capstone project. Active branches: `develop`, `main`, and
+per-developer branches (`nassir`, `yaser`, `salman`, `Rag`).
